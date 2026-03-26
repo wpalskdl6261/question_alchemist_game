@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 앱 구동을 위한 메타 태그 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f7fafc">
+    <title>질문 연금술사</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root { --primary: #2b6cb0; --bg: #f7fafc; --white: #ffffff; --accent: #ed8936; --soft: #ebf8ff; --text: #2d3748; }
+        
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Pretendard', sans-serif; 
+            -webkit-font-smoothing: antialiased; 
+            /* 앱 느낌을 위해 텍스트 길게 눌러서 복사되는 현상 방지 */
+            user-select: none; 
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        
+        body { 
+            background-color: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--text); 
+            -webkit-tap-highlight-color: transparent; 
+            /* 스크롤 시 위아래 고무줄처럼 튕기는 현상(바운스) 완벽 방지 (매우 중요) */
+            overscroll-behavior-y: none; 
+        }
+        
+        .app-container { 
+            width: 100%; max-width: 500px; min-height: 100vh; 
+            background: var(--white); box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            padding-bottom: 80px; position: relative; overflow-x: hidden; 
+        }
+
+        /* 텍스트 입력창은 글씨 선택/복사가 가능해야 함 */
+        textarea, input {
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        /* 상단 별 표시 바 */
+        .top-status-bar {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            padding: 12px 20px; border-bottom: 1px solid #edf2f7;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .star-count-display {
+            font-weight: 800; color: var(--accent); font-size: 1.1rem;
+            display: flex; align-items: center; gap: 5px;
+        }
+
+        .page { display: none; padding: 20px 24px; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        h1 { color: var(--primary); text-align: center; margin-top: 20px; font-size: 2.2rem; letter-spacing: -1.5px; font-weight: 800; }
+        .sub-title { text-align: center; color: #718096; font-weight: 600; margin-top: -5px; margin-bottom: 40px; }
+
+        .menu-group { display: flex; flex-direction: column; gap: 16px; }
+        
+        button { 
+            padding: 18px; border: none; border-radius: 18px; font-size: 1.1rem; 
+            font-weight: 700; cursor: pointer; transition: 0.2s all; width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        
+        .btn-main { background: var(--primary); color: white; box-shadow: 0 6px 0 #1a4475; }
+        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 #1a4475; }
+        .btn-save-mini { background: var(--accent); color: white; box-shadow: 0 4px 0 #c05621; margin-top: 20px; }
+        .btn-save-mini:active { transform: translateY(3px); box-shadow: 0 1px 0 #c05621; }
+        
+        .btn-sub { background: var(--soft); color: var(--primary); }
+        .btn-shop { background: #fffaf0; color: var(--accent); border: 2px solid #feebc8; box-shadow: 0 4px 0 #feebc8; }
+        .btn-shop:active { transform: translateY(4px); box-shadow: none; }
+        .btn-nav { background: #edf2f7; color: #4a5568; margin-top: 20px; }
+
+        .scenario-box { 
+            background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%); 
+            border-radius: 20px; padding: 20px; margin-bottom: 25px; 
+            text-align: center; border: 1px solid #feebc8;
+        }
+        .scenario-img { font-size: 4rem; margin-bottom: 10px; display: block; }
+        
+        .step-container { 
+            margin-bottom: 20px; padding: 20px; border-radius: 20px; 
+            border: 2px solid #edf2f7; display: none;
+        }
+        .step-active { display: block; border-color: #bee3f8; background: #fbfdff; box-shadow: 0 10px 25px rgba(66, 153, 225, 0.05); }
+        .step-done { display: block; opacity: 0.7; pointer-events: none; background: #f0fff4; border-color: #c6f6d5; }
+
+        .example-tag { 
+            font-size: 0.85rem; color: #4a5568; background: #edf2f7; 
+            padding: 10px 15px; border-radius: 12px; display: block; 
+            margin-bottom: 15px; border: 1px dashed #cbd5e0; line-height: 1.5; font-weight: 500;
+        }
+
+        textarea { 
+            width: 100%; height: 100px; border: 2px solid #e2e8f0; 
+            border-radius: 16px; padding: 15px; margin: 10px 0; resize: none; 
+            font-size: 1rem; line-height: 1.6;
+        }
+        textarea:focus { border-color: var(--primary); outline: none; background: #fff; }
+
+        .result-box { 
+            border-radius: 16px; padding: 18px; font-size: 1rem; 
+            margin-top: 15px; display: none; line-height: 1.8; 
+            white-space: pre-wrap;
+        }
+        .pass { background: #f0fff4; color: #1a4731; border: 2px solid #c6f6d5; animation: pop 0.3s; }
+        .fail { background: #fff5f5; color: #9b2c2c; border: 2px solid #feb2b2; }
+
+        @keyframes pop { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
+
+        /* 상점 아이템 UI */
+        .shop-item {
+            background: #fff; border: 2px solid #edf2f7; border-radius: 16px;
+            padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .shop-item-info { flex: 1; }
+        .shop-item-title { font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 4px; }
+        .shop-item-desc { font-size: 0.85rem; color: #718096; line-height: 1.4; }
+        .shop-item-price { font-weight: 800; color: var(--accent); margin-top: 5px; }
+        .shop-btn { padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; width: auto; margin: 0; }
+        .btn-buy { background: var(--accent); color: white; }
+        .btn-equip { background: var(--primary); color: white; }
+        .btn-equipped { background: #cbd5e0; color: #4a5568; pointer-events: none; }
+
+        /* 카테고리 카드 & 자물쇠 시스템 */
+        .cat-card {
+            background: white; border: 2px solid #edf2f7; border-radius: 16px; padding: 20px;
+            text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
+        }
+        .cat-card:active { transform: scale(0.98); border-color: var(--primary); }
+        .cat-icon { font-size: 3rem; margin-bottom: 10px; }
+        .cat-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; }
+        
+        .lock-overlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.55);
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            font-size: 1.25rem; font-weight: 800; color: #e53e3e;
+            backdrop-filter: blur(1px); display: none;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 1);
+        }
+        .locked { pointer-events: none; }
+
+        .footer-logo { text-align: center; padding: 20px; opacity: 0.3; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 🌟 상단 상태바 -->
+    <div class="top-status-bar">
+        <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">질문 연금술사</div>
+        <div class="star-count-display">
+            <span>나의 보물 별:</span>
+            <span id="total-stars-display">0</span>
+            <span>⭐</span>
+        </div>
+    </div>
+
+    <!-- 🏠 홈 화면 -->
+    <div id="page-home" class="page active">
+        <h1>🧪 질문 연금술사</h1>
+        <p class="sub-title">생각을 금으로 만드는 3단계 질문 탐구</p>
+        <div class="menu-group">
+            <button class="btn-sub" onclick="showPage('page-intro')">📖 질문이란 무엇일까?</button>
+            <button class="btn-main" onclick="goToCategory()">✨ 질문 탐구 시작하기</button>
+            <button class="btn-sub" onclick="showPage('page-history'); loadHistory();">📂 나의 보물 기록장</button>
+            <button class="btn-shop" onclick="showPage('page-shop'); renderShop();">🛒 연금술 상점</button>
+        </div>
+        <div class="footer-logo">Question Alchemist App v1.0</div>
+    </div>
+
+    <!-- 📖 질문이란? 화면 -->
+    <div id="page-intro" class="page">
+        <h2 style="color: var(--primary);">📖 질문의 3단계</h2>
+        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--primary);">
+            <p><strong>🔎 1단계 사실질문 (Fact)</strong><br>눈앞의 상황에서 바로 정답을 찾는 질문이에요.</p>
+            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "사과는 어떤 색인가요?", "지금 누가 있나요?"</div>
+        </div>
+        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--accent);">
+            <p><strong>🤔 2단계 궁금질문 (Why)</strong><br>눈에 보이지 않는 '이유'와 '마음'을 찾는 질문이에요.</p>
+            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "왜 사과가 떨어질까요?", "왜 그런 표정을 지을까요?"</div>
+        </div>
+        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid #48bb78;">
+            <p><strong>💡 3단계 새롬질문 (If)</strong><br>만약 상황이 바뀐다면? 상상을 더하는 질문이에요.</p>
+            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "만약 사과가 하늘로 떠오른다면 어떨까요?"</div>
+        </div>
+        <button class="btn-main" onclick="goToCategory()">완벽히 이해했어! 탐구 시작!</button>
+        <button class="btn-nav" onclick="showPage('page-home')">돌아가기</button>
+    </div>
+
+    <!-- 📚 카테고리 선택 화면 -->
+    <div id="page-category" class="page">
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px;">어떤 세계로 떠나볼까?</h2>
+        
+        <div class="cat-card" id="cat-fairyTale" onclick="startQuiz('fairyTale')">
+            <div class="cat-icon">🧚‍♀️</div>
+            <div class="cat-title">신비한 동화의 숲</div>
+            <div style="font-size: 0.9rem; color: #718096;">백설공주, 피노키오, 아기돼지 삼형제 등 재미있는 이야기 세계</div>
+        </div>
+        
+        <div class="cat-card" id="cat-greatPeople" onclick="startQuiz('greatPeople')">
+            <div class="cat-icon">👑</div>
+            <div class="cat-title">위대한 위인의 전당</div>
+            <div style="font-size: 0.9rem; color: #718096;">세종대왕, 이순신, 에디슨 등 역사 속 위인들의 발자취</div>
+            <div class="lock-overlay" id="lock-greatPeople"></div>
+        </div>
+        
+        <div class="cat-card" id="cat-classics" onclick="startQuiz('classics')">
+            <div class="cat-icon">🏰</div>
+            <div class="cat-title">놀라운 고전명작의 성</div>
+            <div style="font-size: 0.9rem; color: #718096;">변신, 위대한 개츠비, 레미제라블 등 세계의 명작들</div>
+            <div class="lock-overlay" id="lock-classics"></div>
+        </div>
+
+        <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
+    </div>
+
+    <!-- 🧪 탐구 화면 -->
+    <div id="page-quiz" class="page">
+        <div class="scenario-box">
+            <div id="scenario-image" class="scenario-img">🖼️</div>
+            <div id="scenario-title" style="font-weight:800; color:#dd6b20; font-size: 1.4rem; margin-bottom:5px;"></div>
+            <p id="scenario-desc" style="font-size:0.95rem; color:#4a5568; line-height:1.6;"></p>
+        </div>
+
+        <div id="step1" class="step-container step-active">
+            <div class="example-tag">💡 예시: "주인공은 누구인가요?", "지금 날씨는 어떤가요?", "머리 위로 떨어진 것은 무엇인가요?"</div>
+            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🔎 1단계: 사실 질문 (무엇, 누구, 어디)</div>
+            <textarea id="q1" placeholder="눈에 보이는 정보를 찾아 질문을 만들어보세요."></textarea>
+            <div id="res1" class="result-box"></div>
+            <button id="btn1" class="btn-main" onclick="checkStep(1)">연금술사님께 물어보기</button>
+        </div>
+
+        <div id="step2" class="step-container">
+            <div class="example-tag">💡 예시: "왜 사과가 아래로 떨어질까요?", "자라는 왜 토끼를 속였을까요?", "흥부는 왜 제비를 치료해줬을까요?"</div>
+            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🤔 2단계: 궁금 질문 (왜, 이유, 원인)</div>
+            <textarea id="q2" placeholder="사건의 숨겨진 이유나 속마음을 질문해보세요."></textarea>
+            <div id="res2" class="result-box"></div>
+            <button id="btn2" class="btn-main" onclick="checkStep(2)">연금술사님께 물어보기</button>
+        </div>
+
+        <div id="step3" class="step-container">
+            <div class="example-tag">💡 예시: "만약 중력이 사라진다면?", "만약 사과 대신 팝콘이 열리는 나무라면?", "만약 토끼가 자라를 따라가지 않았다면?"</div>
+            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">💡 3단계: 새롬 질문 (만약 ~라면)</div>
+            <textarea id="q3" placeholder="나만의 상상을 더해 새로운 질문을 해보세요."></textarea>
+            <div id="res3" class="result-box"></div>
+            <button id="btn3" class="btn-main" onclick="checkStep(3)">최종 보물 완성하기</button>
+        </div>
+
+        <button id="btn-save" class="btn-save-mini" style="display:none;" onclick="saveAndGoHome()">🎉 지금까지 내용 기록장에 저장</button>
+        <button class="btn-nav" onclick="goToCategory()">탐구 중단하고 다른 이야기 고르기</button>
+    </div>
+
+    <!-- 🛒 상점 화면 -->
+    <div id="page-shop" class="page">
+        <h2 style="color: var(--accent); text-align: center;">🛒 연금술 상점</h2>
+        <p style="text-align:center; color:#718096; margin-bottom: 20px;">별을 모아 화려한 폭죽을 구매하고 장착해보세요!</p>
+        
+        <div id="shop-items-container"></div>
+        
+        <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
+    </div>
+
+    <!-- 📂 기록장 화면 -->
+    <div id="page-history" class="page">
+        <h2 style="color: var(--primary);">📂 나의 보물 기록장</h2>
+        <div id="history-list"></div>
+        <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
+    </div>
+</div>
+
+<script>
+    // 🚨 스토어 출시 전에 반드시 여기에 발급받은 API 키를 넣어주세요!
+    // 그리고 구글 AI 스튜디오에서 해당 키의 '웹사이트 제한(HTTP 리퍼러)'을 꼭 설정하세요!
+    const apiKey = "AIzaSyD7XeUgHEDsjKslh3yXeRJozEW4pcYiS0k"; 
+
+    const scenariosData = {
+        fairyTale: [
+            { emoji: "🐦", title: "흥부와 제비", desc: "다친 제비를 정성껏 돌봐준 착한 흥부에게 제비가 보답으로 신비한 박 씨를 물어다 주었습니다." },
+            { emoji: "🐢", title: "토끼와 자라", desc: "용왕님의 병을 고치기 위해 토끼의 간을 구하러 육지로 올라온 자라가 토끼를 설득하고 있습니다." },
+            { emoji: "👠", title: "신데렐라", desc: "12시 자정이 되자 요정의 마법이 풀리기 시작했고, 신데렐라는 유리구두 한 짝을 흘린 채 도망쳤습니다." },
+            { emoji: "🍎", title: "백설공주", desc: "나쁜 왕비가 건넨 빨간 독사과를 한 입 베어 문 백설공주가 깊은 잠에 빠지고 말았습니다." },
+            { emoji: "🤥", title: "피노키오", desc: "요정과의 약속을 어기고 거짓말을 한 나무 인형 피노키오의 코가 길어지기 시작했습니다." },
+            { emoji: "🐷", title: "아기돼지 삼형제", desc: "셋째 돼지가 튼튼하게 지은 벽돌집 덕분에 배고픈 늑대의 입김으로부터 형제들이 안전하게 숨었습니다." },
+            { emoji: "🐺", title: "빨간모자", desc: "할머니 댁에 심부름을 가던 빨간모자가 숲속에서 친절한 척하는 배고픈 늑대를 만났습니다." },
+            { emoji: "🧜‍♀️", title: "인어공주", desc: "바다 마녀에게 자신의 아름다운 목소리를 주고 인간의 두 다리를 얻은 인어공주가 뭍으로 올라왔습니다." },
+            { emoji: "🍪", title: "헨젤과 그레텔", desc: "길을 잃고 숲을 헤매던 남매 앞에 달콤한 사탕과 쿠키로 만들어진 커다란 과자 집이 나타났습니다." },
+            { emoji: "🦢", title: "미운 오리 새끼", desc: "다른 오리들과 다르게 생겨 괴롭힘을 당하던 아기 새가 어느 날 자신이 아름다운 백조라는 것을 깨달았습니다." }
+        ],
+        greatPeople: [
+            { emoji: "🍎", title: "뉴턴과 사과", desc: "나무 아래서 쉬던 위대한 과학자 뉴턴의 머리 위로 사과가 툭 떨어졌습니다." },
+            { emoji: "📜", title: "세종대왕", desc: "백성들이 글을 읽지 못해 억울한 일을 당하는 것을 본 세종대왕이 누구나 쉽게 배울 수 있는 훈민정음을 창제했습니다." },
+            { emoji: "🐢", title: "이순신과 거북선", desc: "적군의 침략에 대비하기 위해 이순신 장군이 지붕을 철갑으로 덮고 뾰족한 창을 꽂은 거북선을 만들었습니다." },
+            { emoji: "💡", title: "토마스 에디슨", desc: "1,000번이 넘는 실패에도 포기하지 않고 실험을 거듭한 에디슨이 마침내 오래 빛나는 백열전구를 발명했습니다." },
+            { emoji: "🌌", title: "알베르트 아인슈타인", desc: "호기심 많던 소년 아인슈타인이 빛의 속도를 상상하며 시간과 공간이 절대적이지 않다는 상대성 이론을 발표했습니다." },
+            { emoji: "🧪", title: "퀴리 부인", desc: "안전 장비도 없는 열악한 실험실에서 수많은 광석을 끓이던 퀴리 부인이 새로운 원소인 라듐을 발견했습니다." },
+            { emoji: "✈️", title: "라이트 형제", desc: "새처럼 하늘을 날고 싶다는 꿈을 가진 자전거 수리공 형제가 수많은 추락 끝에 최초의 동력 비행기를 띄웠습니다." },
+            { emoji: "💧", title: "헬렌 켈러", desc: "보지도 듣지도 못해 분노하던 헬렌이 설리번 선생님의 도움으로 펌프에서 쏟아지는 물의 이름을 깨닫고 눈물을 흘렸습니다." },
+            { emoji: "⏰", title: "장영실", desc: "노비 출신이었지만 뛰어난 손재주를 가진 장영실이 세종대왕의 명을 받아 스스로 시간을 알리는 자격루를 만들었습니다." },
+            { emoji: "🎩", title: "에이브러햄 링컨", desc: "미국의 분열을 막고 모든 사람의 평등을 위해 링컨 대통령이 흑인 노예 해방 선언문에 서명했습니다." }
+        ],
+        classics: [
+            { emoji: "🪲", title: "변신", desc: "어느 날 아침 잠에서 깨어난 그레고르는 자신이 커다란 벌레로 변해버린 것을 발견했습니다." },
+            { emoji: "🥂", title: "위대한 개츠비", desc: "개츠비는 매일 밤 자신의 커다란 저택에서 소중한 친구를 애타게 기다리며 화려한 파티를 열었습니다." },
+            { emoji: "🥖", title: "레미제라블", desc: "배고픈 굶주린 조카들을 위해 빵 한 조각을 훔친 장발장은 오랜 시간 감옥에 갇혀 있어야 했습니다." },
+            { emoji: "🧪", title: "지킬 박사와 하이드", desc: "착한 지킬 박사가 발명한 신비한 약을 마시자, 밤마다 무서운 악당 하이드로 모습이 변하게 되었습니다." },
+            { emoji: "🐳", title: "모비딕", desc: "에이해브 선장은 자신의 다리를 빼앗아간 거대한 하얀 고래 모비딕을 찾기 위해 거친 바다로 떠났습니다." },
+            { emoji: "⚡", title: "프랑켄슈타인", desc: "천재 과학자 프랑켄슈타인이 생명을 불어넣는 실험을 통해 무시무시한 괴물을 만들어냈습니다." },
+            { emoji: "💖", title: "오만과 편견", desc: "첫인상만 보고 서로를 나쁜 사람이라고 오해했던 엘리자베스와 다아시가 점차 진짜 모습을 알아가게 됩니다." },
+            { emoji: "🦊", title: "어린 왕자", desc: "소행성 B612호에서 온 어린 왕자가 사막에서 여우를 만나 '길들인다'는 것의 진짜 의미를 배우게 되었습니다." },
+            { emoji: "⚔️", title: "돈키호테", desc: "기사 소설에 푹 빠진 돈키호테가 거대한 풍차를 나쁜 거인으로 착각하고 로시난테를 타고 돌진했습니다." },
+            { emoji: "🌍", title: "80일간의 세계일주", desc: "시간을 칼같이 지키는 영국 신사 필리어스 포그가 전 재산을 걸고 80일 만에 세계를 도는 내기를 시작했습니다." }
+        ]
+    };
+
+    const shopItems = [
+        { id: 'confetti_red', name: '🔴 붉은 열정의 폭죽', desc: '질문 성공 시 뜨거운 붉은색 폭죽이 터집니다.', price: 15, colors: ['#ff0000', '#bb0000', '#ff8888', '#ff4444'], count: 120 },
+        { id: 'confetti_green', name: '💚 초록 생명의 폭죽', desc: '질문 성공 시 상쾌한 초록빛 폭죽이 터집니다.', price: 15, colors: ['#00ff00', '#00bb00', '#88ff88', '#32cd32'], count: 120 },
+        { id: 'confetti_tricolor', name: '🎉 삼색 환상의 폭죽', desc: '질문 성공 시 가장 화려한 삼색 프리미엄 폭죽이 터집니다.', price: 30, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'], count: 200 }
+    ];
+    
+    let currentCategory = '';
+    let currentSessionStars = 0;
+    
+    // 데이터 불러오기
+    let totalStars = parseInt(localStorage.getItem('alchemist_total_stars') || '0');
+    let inventory = JSON.parse(localStorage.getItem('alchemist_inventory') || '[]');
+    let equippedConfetti = localStorage.getItem('alchemist_equipped') || '';
+    let ongoingQuests = JSON.parse(localStorage.getItem('alchemist_ongoing_quests') || '{}');
+
+    updateTopBar();
+
+    function updateTopBar() {
+        document.getElementById('total-stars-display').innerText = totalStars;
+    }
+
+    function showPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goToCategory() {
+        const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
+        
+        let fairyTaleStars = 0;
+        scenariosData.fairyTale.forEach(s => {
+            const epHistory = history.filter(h => h.title === s.title);
+            const maxStars = epHistory.length > 0 ? Math.max(...epHistory.map(h => h.stars)) : 0;
+            fairyTaleStars += maxStars;
+        });
+
+        const isUnlocked = fairyTaleStars >= 30; 
+        
+        const lockGreat = document.getElementById('lock-greatPeople');
+        const lockClassics = document.getElementById('lock-classics');
+        const cardGreat = document.getElementById('cat-greatPeople');
+        const cardClassics = document.getElementById('cat-classics');
+
+        if (isUnlocked) {
+            lockGreat.style.display = 'none';
+            lockClassics.style.display = 'none';
+            cardGreat.classList.remove('locked');
+            cardClassics.classList.remove('locked');
+        } else {
+            const lockMsg = `🔒 봉인됨<br><span style="font-size:0.9rem; font-weight:normal; margin-top:5px;">(동화의 숲: ${fairyTaleStars}/30별 필요)</span>`;
+            lockGreat.innerHTML = lockMsg;
+            lockClassics.innerHTML = lockMsg;
+            lockGreat.style.display = 'flex';
+            lockClassics.style.display = 'flex';
+            cardGreat.classList.add('locked');
+            cardClassics.classList.add('locked');
+        }
+
+        showPage('page-category');
+    }
+
+    function startQuiz(category) {
+        currentCategory = category;
+        
+        const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
+        const clearedTitles = history.filter(h => h.stars === 3).map(h => h.title);
+        
+        let qState = ongoingQuests[category];
+        let s = null;
+        
+        if (qState) {
+            s = scenariosData[category].find(x => x.title === qState.title);
+            if (s && clearedTitles.includes(s.title)) {
+                s = null; 
+                delete ongoingQuests[category];
+                localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+            }
+        }
+
+        if (!s) {
+            const availableScenarios = scenariosData[category].filter(scen => !clearedTitles.includes(scen.title));
+            if (availableScenarios.length === 0) {
+                alert("🎉 대단해요! 이 세계의 모든 에피소드를 별 3개로 완벽하게 마스터했습니다! 다른 세계를 탐험해보세요.");
+                return;
+            }
+
+            const curIdx = Math.floor(Math.random() * availableScenarios.length);
+            s = availableScenarios[curIdx];
+            
+            qState = {
+                title: s.title,
+                step: 1,
+                stars: 0,
+                answers: ['', '', '']
+            };
+            ongoingQuests[category] = qState;
+            localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+        }
+
+        document.getElementById('scenario-image').innerText = s.emoji;
+        document.getElementById('scenario-title').innerText = s.title;
+        document.getElementById('scenario-desc').innerText = s.desc;
+        
+        currentSessionStars = qState.stars;
+        
+        for(let i=1; i<=3; i++) {
+            const stepEl = document.getElementById(`step${i}`);
+            const qEl = document.getElementById(`q${i}`);
+            const resEl = document.getElementById(`res${i}`);
+            const btnEl = document.getElementById(`btn${i}`);
+
+            if (i < qState.step) {
+                stepEl.className = 'step-container step-done';
+                qEl.value = qState.answers[i-1];
+                resEl.className = "result-box pass";
+                resEl.innerHTML = "✨ 지식 정제 성공!";
+                resEl.style.display = 'block';
+                btnEl.style.display = 'none';
+            } else if (i === qState.step) {
+                stepEl.className = 'step-container step-active';
+                qEl.value = qState.answers[i-1] || '';
+                resEl.style.display = 'none';
+                btnEl.style.display = 'block';
+                btnEl.disabled = false;
+                btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
+            } else {
+                stepEl.className = 'step-container';
+                qEl.value = '';
+                resEl.style.display = 'none';
+                btnEl.style.display = 'block';
+                btnEl.disabled = false;
+                btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
+            }
+        }
+
+        if (qState.step > 1) {
+            document.getElementById('btn-save').style.display = 'block';
+            if (qState.step > 3) {
+                document.getElementById('btn-save').innerText = "🎉 3성 달성! 완벽하게 마스터했습니다!";
+            } else {
+                document.getElementById('btn-save').innerText = "🎉 지금까지 내용 기록장에 저장";
+            }
+        } else {
+            document.getElementById('btn-save').style.display = 'none';
+        }
+
+        showPage('page-quiz');
+    }
+
+    function shootConfetti() {
+        if (!equippedConfetti) return; 
+        const item = shopItems.find(i => i.id === equippedConfetti);
+        if (!item) return;
+
+        confetti({
+            particleCount: item.count,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: item.colors
+        });
+    }
+
+    async function checkStep(step) {
+        const qVal = document.getElementById(`q${step}`).value.trim();
+        if(!qVal) return alert("질문을 입력해주세요!");
+
+        const btn = document.getElementById(`btn${step}`);
+        const res = document.getElementById(`res${step}`);
+        
+        btn.disabled = true;
+        btn.innerText = "🧙‍♂️ 지식을 정제하고 있어요...";
+        res.style.display = "block";
+        res.className = "result-box";
+        res.innerText = "연금술사님이 질문의 가치를 확인하고 있어요...";
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        
+        const currentTitle = document.getElementById('scenario-title').innerText;
+        const s = scenariosData[currentCategory].find(x => x.title === currentTitle);
+
+        const systemPrompt = `너는 초등학생의 호기심을 이끌어주는 '질문 연금술사'야.
+제시된 이야기와 학생의 질문이 관련이 있고 단계(1단계:사실, 2단계:이유, 3단계:상상)에 맞는지 심사해.
+
+[답변 가이드]
+1. 지식 설명은 무조건 '1~2줄'로 아주 짧고 핵심만 간결하게 해! 길게 설명하지 마!
+2. 답변의 마지막 줄에는 반드시 다음 단계로 유도하는 다정한 문구를 명확하게 넣어줘!
+   - 1단계 통과 시: "이제 2단계 궁금 질문(왜?)을 해볼까?"
+   - 2단계 통과 시: "이제 마지막 3단계 새롬 질문(만약 ~라면?)에 도전해봐!"
+   - 3단계 통과 시: "지식의 황금이 완벽하게 만들어졌어!"
+
+반드시 JSON {"isPass": boolean, "feedback": "짧은답변+유도문구"} 형식으로만 대답해.`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    contents: [{ parts: [{ text: `이야기: [${s.title}] - ${s.desc}\n단계: ${step}단계\n질문: "${qVal}"` }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+            
+            const data = await response.json();
+            const result = JSON.parse(data.candidates[0].content.parts[0].text);
+            
+            if (result.isPass) {
+                shootConfetti(); 
+                
+                currentSessionStars++;
+                totalStars++;
+                localStorage.setItem('alchemist_total_stars', totalStars);
+                updateTopBar();
+
+                res.className = "result-box pass";
+                res.innerHTML = "✨ ⭐ 별 1개 획득!<br>" + result.feedback.replace(/\n/g, '<br>');
+                
+                let qState = ongoingQuests[currentCategory];
+                qState.stars = currentSessionStars;
+                qState.answers[step-1] = qVal;
+                qState.step = step + 1;
+                localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+
+                btn.style.display = "none";
+                document.getElementById('btn-save').style.display = 'block';
+
+                if(step < 3) {
+                    document.getElementById(`step${step}`).className = "step-container step-done";
+                    setTimeout(() => {
+                        document.getElementById(`step${step+1}`).className = "step-container step-active";
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 400);
+                } else {
+                    document.getElementById(`step3`).className = "step-container step-done";
+                    document.getElementById('btn-save').innerText = "🎉 3성 달성! 완벽하게 마스터했습니다!";
+                }
+            } else {
+                res.className = "result-box fail";
+                res.innerHTML = "⚠️ 조금 더 고민해볼까?<br>" + result.feedback.replace(/\n/g, '<br>');
+                btn.disabled = false;
+                btn.innerText = "다시 질문하기";
+            }
+        } catch (e) {
+            res.className = "result-box fail";
+            res.innerHTML = "🧙‍♂️ <b>앗! 연금술 도구가 과부하되었어요!</b><br>잠시만 기다렸다가 다시 '물어보기'를 눌러주세요.";
+            btn.disabled = false; 
+            btn.innerText = "다시 물어보기";
+        }
+    }
+
+    function saveAndGoHome() {
+        if (currentSessionStars === 0) {
+            alert("통과한 질문이 없어서 저장할 수 없어요!");
+            return;
+        }
+
+        const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
+        const currentTitle = document.getElementById('scenario-title').innerText;
+        let qState = ongoingQuests[currentCategory];
+        
+        const existingIdx = history.findIndex(h => h.title === currentTitle && h.stars < 3);
+        const record = { 
+            date: new Date().toLocaleString(), 
+            title: currentTitle, 
+            stars: currentSessionStars,
+            q1: qState.answers[0] || '(건너뜀)', 
+            q2: qState.answers[1] || '(건너뜀)', 
+            q3: qState.answers[2] || '(건너뜀)' 
+        };
+        
+        if (existingIdx >= 0) {
+            history[existingIdx] = record; 
+        } else {
+            history.push(record);
+        }
+        
+        localStorage.setItem('alchemist_history_v2', JSON.stringify(history));
+        
+        if (qState && qState.step > 3) {
+            delete ongoingQuests[currentCategory];
+            localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+        }
+
+        alert(`⭐ 별 ${currentSessionStars}개와 함께 기록장에 저장되었습니다! 🎉`);
+        goToCategory(); 
+    }
+
+    function loadHistory() {
+        const list = document.getElementById('history-list');
+        const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
+        list.innerHTML = history.length ? history.reverse().map(h => `
+            <div style="background:#f8fafc; border-radius:18px; padding:20px; margin-bottom:15px; border:1px solid #e2e8f0;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <strong style="color:var(--primary); font-size:1.1rem;">[${h.title}]</strong>
+                    <span style="color:var(--accent); font-weight:800;">
+                        ${Array(h.stars).fill('⭐').join('')}${Array(3 - h.stars).fill('☆').join('')}
+                    </span>
+                </div>
+                <small style="color:#a0aec0; display:block; margin-bottom:10px;">📅 ${h.date}</small>
+                <div style="font-size:0.9rem; color:#4a5568; background:white; padding:10px; border-radius:10px;">
+                    <p style="margin:4px 0;">🔍 <b>사실:</b> ${h.q1}</p>
+                    <p style="margin:4px 0;">🤔 <b>궁금:</b> ${h.q2}</p>
+                    <p style="margin:4px 0;">💡 <b>새롬:</b> ${h.q3}</p>
+                </div>
+            </div>`).join('') : '<p style="text-align:center; padding:50px; color:#a0aec0;">아직 저장된 보물이 없어요.</p>';
+    }
+
+    function renderShop() {
+        const container = document.getElementById('shop-items-container');
+        
+        if(inventory.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#e53e3e; font-weight:bold; margin-bottom:20px;">현재 장착된 폭죽이 없어 질문을 통과해도 폭죽이 터지지 않아요! 별을 모아 구매해보세요.</p>`;
+        } else {
+            container.innerHTML = ``;
+        }
+
+        container.innerHTML += shopItems.map(item => {
+            const isOwned = inventory.includes(item.id);
+            const isEquipped = equippedConfetti === item.id;
+            
+            let btnHtml = '';
+            if (isEquipped) {
+                btnHtml = `<button class="shop-btn btn-equipped">장착 중</button>`;
+            } else if (isOwned) {
+                btnHtml = `<button class="shop-btn btn-equip" onclick="equipItem('${item.id}')">장착하기</button>`;
+            } else {
+                btnHtml = `<button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price})">⭐ ${item.price} 구매</button>`;
+            }
+
+            return `
+                <div class="shop-item">
+                    <div class="shop-item-info">
+                        <div class="shop-item-title">${item.name}</div>
+                        <div class="shop-item-desc">${item.desc}</div>
+                        ${!isOwned ? `<div class="shop-item-price">가격: 별 ${item.price}개</div>` : ''}
+                    </div>
+                    <div>${btnHtml}</div>
+                </div>
+            `;
+        }).join('');
+        updateTopBar();
+    }
+
+    function buyItem(id, price) {
+        if (totalStars < price) {
+            alert(`별이 부족합니다! (현재: ${totalStars}개 / 필요: ${price}개)\n질문 탐구를 해서 별을 더 모아보세요!`);
+            return;
+        }
+        
+        if (confirm(`별 ${price}개를 사용하여 구매하시겠습니까?`)) {
+            totalStars -= price;
+            localStorage.setItem('alchemist_total_stars', totalStars);
+            inventory.push(id);
+            localStorage.setItem('alchemist_inventory', JSON.stringify(inventory));
+            equipItem(id);
+            alert("구매 성공! 바로 장착되었습니다. 🎉 이제 질문을 통과하면 폭죽이 터집니다!");
+        }
+    }
+
+    function equipItem(id) {
+        equippedConfetti = id;
+        localStorage.setItem('alchemist_equipped', equippedConfetti);
+        renderShop();
+    }
+</script>
+</body>
+</html>
