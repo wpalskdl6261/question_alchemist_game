@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 앱 구동을 위한 메타 태그 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f7fafc">
@@ -13,23 +12,24 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        :root { --primary: #2b6cb0; --bg: #f7fafc; --white: #ffffff; --accent: #ed8936; --soft: #ebf8ff; --text: #2d3748; }
+        /* CSS 변수: 스킨 기능으로 색상이 실시간으로 바뀝니다! */
+        :root { 
+            --primary: #2b6cb0; --bg: #f7fafc; --white: #ffffff; 
+            --accent: #ed8936; --soft: #ebf8ff; --text: #2d3748; 
+            --box-border: #edf2f7; --card-bg: rgba(255,255,255,0.9);
+        }
         
         * { 
             box-sizing: border-box; 
             font-family: 'Pretendard', sans-serif; 
             -webkit-font-smoothing: antialiased; 
-            /* 앱 느낌을 위해 텍스트 길게 눌러서 복사되는 현상 방지 */
-            user-select: none; 
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
+            user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+            transition: background-color 0.4s, color 0.4s, border-color 0.4s; 
         }
         
         body { 
             background-color: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--text); 
-            -webkit-tap-highlight-color: transparent; 
-            /* 스크롤 시 위아래 고무줄처럼 튕기는 현상(바운스) 완벽 방지 (매우 중요) */
-            overscroll-behavior-y: none; 
+            -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; 
         }
         
         .app-container { 
@@ -38,30 +38,36 @@
             padding-bottom: 80px; position: relative; overflow-x: hidden; 
         }
 
-        /* 텍스트 입력창은 글씨 선택/복사가 가능해야 함 */
-        textarea, input {
-            user-select: text;
-            -webkit-user-select: text;
+        /* ⚡ 대지의 진동 스크롤 효과용 애니메이션 */
+        @keyframes quakeAnim {
+            0% { transform: translate(1px, 1px) rotate(0deg); box-shadow: 0 0 0px gold; }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: inset 0 0 30px gold; }
+            20% { transform: translate(-3px, 0px) rotate(1deg); box-shadow: inset 0 0 50px gold; }
+            30% { transform: translate(3px, 2px) rotate(0deg); box-shadow: inset 0 0 60px gold; }
+            40% { transform: translate(1px, -1px) rotate(1deg); box-shadow: inset 0 0 50px gold; }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); box-shadow: inset 0 0 30px gold; }
+            100% { transform: translate(0px, 0px) rotate(0deg); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         }
+        .quake-active { animation: quakeAnim 0.8s ease-in-out; }
 
-        /* 상단 별 표시 바 */
+        textarea, input { user-select: text; -webkit-user-select: text; color: #2d3748; }
+
         .top-status-bar {
             position: sticky; top: 0; z-index: 100;
-            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
-            padding: 12px 20px; border-bottom: 1px solid #edf2f7;
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            padding: 12px 20px; border-bottom: 1px solid var(--box-border);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .star-count-display {
-            font-weight: 800; color: var(--accent); font-size: 1.1rem;
-            display: flex; align-items: center; gap: 5px;
-        }
+        
+        #user-title-display { font-weight: 800; color: var(--primary); font-size: 0.95rem; text-shadow: 0px 1px 2px rgba(0,0,0,0.05); }
+        .star-count-display { font-weight: 800; color: var(--accent); font-size: 1.1rem; display: flex; align-items: center; gap: 5px; }
 
         .page { display: none; padding: 20px 24px; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         h1 { color: var(--primary); text-align: center; margin-top: 20px; font-size: 2.2rem; letter-spacing: -1.5px; font-weight: 800; }
-        .sub-title { text-align: center; color: #718096; font-weight: 600; margin-top: -5px; margin-bottom: 40px; }
+        .sub-title { text-align: center; color: var(--text); opacity: 0.7; font-weight: 600; margin-top: -5px; margin-bottom: 40px; }
 
         .menu-group { display: flex; flex-direction: column; gap: 16px; }
         
@@ -71,29 +77,29 @@
             display: flex; align-items: center; justify-content: center; gap: 10px;
         }
         
-        .btn-main { background: var(--primary); color: white; box-shadow: 0 6px 0 #1a4475; }
-        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 #1a4475; }
-        .btn-save-mini { background: var(--accent); color: white; box-shadow: 0 4px 0 #c05621; margin-top: 20px; }
-        .btn-save-mini:active { transform: translateY(3px); box-shadow: 0 1px 0 #c05621; }
+        .btn-main { background: var(--primary); color: white; box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
+        .btn-save-mini { background: var(--accent); color: white; box-shadow: 0 4px 0 rgba(0,0,0,0.2); margin-top: 20px; }
+        .btn-save-mini:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
         
         .btn-sub { background: var(--soft); color: var(--primary); }
-        .btn-shop { background: #fffaf0; color: var(--accent); border: 2px solid #feebc8; box-shadow: 0 4px 0 #feebc8; }
+        .btn-shop { background: var(--bg); color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 4px 0 var(--accent); }
         .btn-shop:active { transform: translateY(4px); box-shadow: none; }
-        .btn-nav { background: #edf2f7; color: #4a5568; margin-top: 20px; }
+        .btn-nav { background: var(--box-border); color: var(--text); margin-top: 20px; }
 
         .scenario-box { 
-            background: linear-gradient(135deg, #fffaf0 0%, #fff5e6 100%); 
+            background: var(--soft);
             border-radius: 20px; padding: 20px; margin-bottom: 25px; 
-            text-align: center; border: 1px solid #feebc8;
+            text-align: center; border: 1px solid var(--accent);
         }
-        .scenario-img { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .scenario-img { font-size: 4rem; margin-bottom: 10px; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
         
         .step-container { 
             margin-bottom: 20px; padding: 20px; border-radius: 20px; 
-            border: 2px solid #edf2f7; display: none;
+            border: 2px solid var(--box-border); display: none; background: var(--white);
         }
-        .step-active { display: block; border-color: #bee3f8; background: #fbfdff; box-shadow: 0 10px 25px rgba(66, 153, 225, 0.05); }
-        .step-done { display: block; opacity: 0.7; pointer-events: none; background: #f0fff4; border-color: #c6f6d5; }
+        .step-active { display: block; border-color: var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .step-done { display: block; opacity: 0.7; pointer-events: none; background: var(--bg); }
 
         .example-tag { 
             font-size: 0.85rem; color: #4a5568; background: #edf2f7; 
@@ -104,15 +110,11 @@
         textarea { 
             width: 100%; height: 100px; border: 2px solid #e2e8f0; 
             border-radius: 16px; padding: 15px; margin: 10px 0; resize: none; 
-            font-size: 1rem; line-height: 1.6;
+            font-size: 1rem; line-height: 1.6; background: #fff;
         }
-        textarea:focus { border-color: var(--primary); outline: none; background: #fff; }
+        textarea:focus { border-color: var(--primary); outline: none; }
 
-        .result-box { 
-            border-radius: 16px; padding: 18px; font-size: 1rem; 
-            margin-top: 15px; display: none; line-height: 1.8; 
-            white-space: pre-wrap;
-        }
+        .result-box { border-radius: 16px; padding: 18px; font-size: 1rem; margin-top: 15px; display: none; line-height: 1.8; white-space: pre-wrap; }
         .pass { background: #f0fff4; color: #1a4731; border: 2px solid #c6f6d5; animation: pop 0.3s; }
         .fail { background: #fff5f5; color: #9b2c2c; border: 2px solid #feb2b2; }
 
@@ -120,53 +122,50 @@
 
         /* 상점 아이템 UI */
         .shop-item {
-            background: #fff; border: 2px solid #edf2f7; border-radius: 16px;
-            padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;
+            background: var(--white); border: 2px solid var(--box-border); border-radius: 16px;
+            padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
         }
-        .shop-item-info { flex: 1; }
+        .shop-item-info { flex: 1; min-width: 60%; }
         .shop-item-title { font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 4px; }
-        .shop-item-desc { font-size: 0.85rem; color: #718096; line-height: 1.4; }
+        .shop-item-desc { font-size: 0.85rem; color: var(--text); opacity:0.8; line-height: 1.4; }
         .shop-item-price { font-weight: 800; color: var(--accent); margin-top: 5px; }
-        .shop-btn { padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; width: auto; margin: 0; }
+        
+        .shop-btn { padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; width: auto; margin: 0; flex: 1; text-align: center; }
         .btn-buy { background: var(--accent); color: white; }
         .btn-equip { background: var(--primary); color: white; }
-        .btn-equipped { background: #cbd5e0; color: #4a5568; pointer-events: none; }
+        .btn-equipped { background: var(--box-border); color: var(--text); pointer-events: none; }
+        .btn-preview { background: #e2e8f0; color: #4a5568; }
+        .btn-preview-active { background: #718096; color: white; border: 2px solid #4a5568; }
 
-        /* 카테고리 카드 & 자물쇠 시스템 */
-        .cat-card {
-            background: white; border: 2px solid #edf2f7; border-radius: 16px; padding: 20px;
-            text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden;
-        }
+        .cat-card { background: var(--white); border: 2px solid var(--box-border); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
         .cat-card:active { transform: scale(0.98); border-color: var(--primary); }
-        .cat-icon { font-size: 3rem; margin-bottom: 10px; }
-        .cat-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; }
+        .cat-icon { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .cat-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; color: var(--text); }
         
         .lock-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255, 255, 255, 0.55);
-            display: flex; justify-content: center; align-items: center; flex-direction: column;
-            font-size: 1.25rem; font-weight: 800; color: #e53e3e;
-            backdrop-filter: blur(1px); display: none;
-            text-shadow: 0 1px 3px rgba(255, 255, 255, 1);
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.55);
+            display: flex; justify-content: center; align-items: center; flex-direction: column; font-size: 1.25rem; font-weight: 800; color: #e53e3e; backdrop-filter: blur(1px); display: none; text-shadow: 0 1px 3px rgba(255, 255, 255, 1);
         }
         .locked { pointer-events: none; }
 
-        .footer-logo { text-align: center; padding: 20px; opacity: 0.3; font-size: 0.75rem; }
+        .footer-logo { text-align: center; padding: 20px; opacity: 0.3; font-size: 0.75rem; color: var(--text); }
+        
+        /* 뱃지 */
+        .badge-skin { background: #805ad5; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
+        .badge-effect { background: #ed8936; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
+        .badge-premium { background: #e53e3e; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
     </style>
 </head>
 <body>
-<div class="app-container">
-    <!-- 🌟 상단 상태바 -->
+<div id="main-app" class="app-container">
     <div class="top-status-bar">
-        <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">질문 연금술사</div>
+        <div id="user-title-display">🌱 견습 연금술사</div>
         <div class="star-count-display">
-            <span>나의 보물 별:</span>
             <span id="total-stars-display">0</span>
             <span>⭐</span>
         </div>
     </div>
 
-    <!-- 🏠 홈 화면 -->
     <div id="page-home" class="page active">
         <h1>🧪 질문 연금술사</h1>
         <p class="sub-title">생각을 금으로 만드는 3단계 질문 탐구</p>
@@ -174,12 +173,11 @@
             <button class="btn-sub" onclick="showPage('page-intro')">📖 질문이란 무엇일까?</button>
             <button class="btn-main" onclick="goToCategory()">✨ 질문 탐구 시작하기</button>
             <button class="btn-sub" onclick="showPage('page-history'); loadHistory();">📂 나의 보물 기록장</button>
-            <button class="btn-shop" onclick="showPage('page-shop'); renderShop();">🛒 연금술 상점</button>
+            <button class="btn-shop" onclick="showPage('page-shop'); renderShop();">🛒 마법 연금술 상점</button>
         </div>
-        <div class="footer-logo">Question Alchemist App v1.0</div>
+        <div class="footer-logo">QA App v5.1 (Gemini 2.0 Flash / Magic Edition)</div>
     </div>
 
-    <!-- 📖 질문이란? 화면 -->
     <div id="page-intro" class="page">
         <h2 style="color: var(--primary);">📖 질문의 3단계</h2>
         <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--primary);">
@@ -198,43 +196,41 @@
         <button class="btn-nav" onclick="showPage('page-home')">돌아가기</button>
     </div>
 
-    <!-- 📚 카테고리 선택 화면 -->
     <div id="page-category" class="page">
         <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px;">어떤 세계로 떠나볼까?</h2>
         
         <div class="cat-card" id="cat-fairyTale" onclick="startQuiz('fairyTale')">
             <div class="cat-icon">🧚‍♀️</div>
             <div class="cat-title">신비한 동화의 숲</div>
-            <div style="font-size: 0.9rem; color: #718096;">백설공주, 피노키오, 아기돼지 삼형제 등 재미있는 이야기 세계</div>
+            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">백설공주, 피노키오, 아기돼지 삼형제 등 재미있는 이야기 세계</div>
         </div>
         
         <div class="cat-card" id="cat-greatPeople" onclick="startQuiz('greatPeople')">
             <div class="cat-icon">👑</div>
             <div class="cat-title">위대한 위인의 전당</div>
-            <div style="font-size: 0.9rem; color: #718096;">세종대왕, 이순신, 에디슨 등 역사 속 위인들의 발자취</div>
+            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">세종대왕, 이순신, 에디슨 등 역사 속 위인들의 발자취</div>
             <div class="lock-overlay" id="lock-greatPeople"></div>
         </div>
         
         <div class="cat-card" id="cat-classics" onclick="startQuiz('classics')">
             <div class="cat-icon">🏰</div>
             <div class="cat-title">놀라운 고전명작의 성</div>
-            <div style="font-size: 0.9rem; color: #718096;">변신, 위대한 개츠비, 레미제라블 등 세계의 명작들</div>
+            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">변신, 위대한 개츠비, 레미제라블 등 세계의 명작들</div>
             <div class="lock-overlay" id="lock-classics"></div>
         </div>
 
         <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
     </div>
 
-    <!-- 🧪 탐구 화면 -->
     <div id="page-quiz" class="page">
         <div class="scenario-box">
             <div id="scenario-image" class="scenario-img">🖼️</div>
-            <div id="scenario-title" style="font-weight:800; color:#dd6b20; font-size: 1.4rem; margin-bottom:5px;"></div>
-            <p id="scenario-desc" style="font-size:0.95rem; color:#4a5568; line-height:1.6;"></p>
+            <div id="scenario-title" style="font-weight:800; color:var(--accent); font-size: 1.4rem; margin-bottom:5px;"></div>
+            <p id="scenario-desc" style="font-size:0.95rem; color:var(--text); opacity:0.9; line-height:1.6;"></p>
         </div>
 
         <div id="step1" class="step-container step-active">
-            <div class="example-tag">💡 예시: "주인공은 누구인가요?", "지금 날씨는 어떤가요?", "머리 위로 떨어진 것은 무엇인가요?"</div>
+            <div class="example-tag">💡 예시: "주인공은 누구인가요?", "지금 날씨는 어떤가요?"</div>
             <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🔎 1단계: 사실 질문 (무엇, 누구, 어디)</div>
             <textarea id="q1" placeholder="눈에 보이는 정보를 찾아 질문을 만들어보세요."></textarea>
             <div id="res1" class="result-box"></div>
@@ -242,7 +238,7 @@
         </div>
 
         <div id="step2" class="step-container">
-            <div class="example-tag">💡 예시: "왜 사과가 아래로 떨어질까요?", "자라는 왜 토끼를 속였을까요?", "흥부는 왜 제비를 치료해줬을까요?"</div>
+            <div class="example-tag">💡 예시: "왜 사과가 아래로 떨어질까요?", "왜 토끼를 속였을까요?"</div>
             <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🤔 2단계: 궁금 질문 (왜, 이유, 원인)</div>
             <textarea id="q2" placeholder="사건의 숨겨진 이유나 속마음을 질문해보세요."></textarea>
             <div id="res2" class="result-box"></div>
@@ -250,7 +246,7 @@
         </div>
 
         <div id="step3" class="step-container">
-            <div class="example-tag">💡 예시: "만약 중력이 사라진다면?", "만약 사과 대신 팝콘이 열리는 나무라면?", "만약 토끼가 자라를 따라가지 않았다면?"</div>
+            <div class="example-tag">💡 예시: "만약 중력이 사라진다면?", "만약 토끼가 따라가지 않았다면?"</div>
             <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">💡 3단계: 새롬 질문 (만약 ~라면)</div>
             <textarea id="q3" placeholder="나만의 상상을 더해 새로운 질문을 해보세요."></textarea>
             <div id="res3" class="result-box"></div>
@@ -261,17 +257,15 @@
         <button class="btn-nav" onclick="goToCategory()">탐구 중단하고 다른 이야기 고르기</button>
     </div>
 
-    <!-- 🛒 상점 화면 -->
     <div id="page-shop" class="page">
         <h2 style="color: var(--accent); text-align: center;">🛒 연금술 상점</h2>
-        <p style="text-align:center; color:#718096; margin-bottom: 20px;">별을 모아 화려한 폭죽을 구매하고 장착해보세요!</p>
+        <p style="text-align:center; color:var(--text); opacity:0.8; margin-bottom: 20px;">별을 모아 스킨과 특수효과를 구매해보세요!</p>
         
         <div id="shop-items-container"></div>
         
         <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
     </div>
 
-    <!-- 📂 기록장 화면 -->
     <div id="page-history" class="page">
         <h2 style="color: var(--primary);">📂 나의 보물 기록장</h2>
         <div id="history-list"></div>
@@ -281,8 +275,7 @@
 
 <script>
     // 🚨 스토어 출시 전에 반드시 여기에 발급받은 API 키를 넣어주세요!
-    // 그리고 구글 AI 스튜디오에서 해당 키의 '웹사이트 제한(HTTP 리퍼러)'을 꼭 설정하세요!
-    const apiKey = "AIzaSyD7XeUgHEDsjKslh3yXeRJozEW4pcYiS0k"; 
+    const apiKey = ""; 
 
     const scenariosData = {
         fairyTale: [
@@ -323,28 +316,71 @@
         ]
     };
 
+    // 🌟 방대한 상점 아이템 (프리미엄 특수효과 대거 입고!)
     const shopItems = [
-        { id: 'confetti_red', name: '🔴 붉은 열정의 폭죽', desc: '질문 성공 시 뜨거운 붉은색 폭죽이 터집니다.', price: 15, colors: ['#ff0000', '#bb0000', '#ff8888', '#ff4444'], count: 120 },
-        { id: 'confetti_green', name: '💚 초록 생명의 폭죽', desc: '질문 성공 시 상쾌한 초록빛 폭죽이 터집니다.', price: 15, colors: ['#00ff00', '#00bb00', '#88ff88', '#32cd32'], count: 120 },
-        { id: 'confetti_tricolor', name: '🎉 삼색 환상의 폭죽', desc: '질문 성공 시 가장 화려한 삼색 프리미엄 폭죽이 터집니다.', price: 30, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'], count: 200 }
+        { id: 'effect_red', type: 'effect', name: '🔴 붉은 열정의 폭죽', desc: '질문 성공 시 붉은색 폭죽이 터집니다.', price: 15 },
+        { id: 'effect_green', type: 'effect', name: '💚 초록 생명의 폭죽', desc: '질문 성공 시 상쾌한 초록빛 폭죽이 터집니다.', price: 15 },
+        { id: 'effect_tricolor', type: 'effect', name: '🎉 삼색 환상의 폭죽', desc: '가장 화려한 삼색 폭죽이 터집니다.', price: 30 },
+        { id: 'effect_potion', type: 'premium_effect', name: '🧪 마녀의 비밀 물약', desc: '[프리미엄] 화면 중앙에서 보랏빛과 연두빛 마법 물약이 크게 폭발합니다!', price: 20 },
+        { id: 'effect_meteor', type: 'premium_effect', name: '🌠 황금 유성우', desc: '[프리미엄] 하늘에서 황금빛 별똥별들이 우수수 쏟아져 내립니다!', price: 30 },
+        { id: 'effect_quake', type: 'premium_effect', name: '⚡ 대지의 진동 스크롤', desc: '[프리미엄] 스마트폰 화면이 요동치며 황금빛 오라가 뿜어져 나옵니다!', price: 40 },
+        { id: 'effect_fireworks', type: 'premium_effect', name: '🎆 대마법사의 연회', desc: '[프리미엄] 화면 3곳에서 연속으로 거대한 불꽃놀이가 터집니다!', price: 50 },
+        
+        { id: 'skin_dark', type: 'skin', name: '🔮 흑마법사 스킨', desc: '앱 전체가 멋진 보랏빛 다크 모드로 변신합니다.', price: 40 },
+        { id: 'skin_fairy', type: 'skin', name: '🧚‍♀️ 숲속의 요정 스킨', desc: '앱 전체가 싱그러운 숲속 테마로 변신합니다.', price: 40 },
+        { id: 'skin_royal', type: 'skin', name: '👑 황실 대마법사 스킨', desc: '앱 전체가 고급스러운 황금빛 테마로 변신합니다.', price: 80 }
     ];
     
     let currentCategory = '';
     let currentSessionStars = 0;
     
-    // 데이터 불러오기
+    // 데이터 로드
     let totalStars = parseInt(localStorage.getItem('alchemist_total_stars') || '0');
     let inventory = JSON.parse(localStorage.getItem('alchemist_inventory') || '[]');
-    let equippedConfetti = localStorage.getItem('alchemist_equipped') || '';
+    let equippedEffect = localStorage.getItem('alchemist_equipped_effect') || '';
+    let equippedSkin = localStorage.getItem('alchemist_equipped_skin') || 'default';
     let ongoingQuests = JSON.parse(localStorage.getItem('alchemist_ongoing_quests') || '{}');
+    
+    let previewingSkinId = null;
 
+    applyTheme(equippedSkin);
     updateTopBar();
+
+    // 🏆 10단계 칭호 결정 함수
+    function getTitle(stars) {
+        if(stars >= 90) return "👑 전설의 대연금술사";
+        if(stars >= 80) return "✨ 빛나는 마스터";
+        if(stars >= 70) return "💎 현자의 돌 소유자";
+        if(stars >= 60) return "🧙‍♂️ 위대한 연금술사";
+        if(stars >= 50) return "👁️ 진리의 탐색자";
+        if(stars >= 40) return "🪄 마법의 질문가";
+        if(stars >= 30) return "🦉 지혜로운 탐구자";
+        if(stars >= 20) return "🧪 숙련된 탐구자";
+        if(stars >= 10) return "📖 초보 연금술사";
+        return "🌱 견습 연금술사";
+    }
 
     function updateTopBar() {
         document.getElementById('total-stars-display').innerText = totalStars;
+        document.getElementById('user-title-display').innerText = getTitle(totalStars);
+    }
+
+    // 🎨 스킨(테마) 적용
+    function applyTheme(skinId) {
+        const root = document.documentElement;
+        if (skinId === 'skin_dark') {
+            root.style.setProperty('--primary', '#9f7aea'); root.style.setProperty('--bg', '#1a202c'); root.style.setProperty('--white', '#2d3748'); root.style.setProperty('--accent', '#ed64a6'); root.style.setProperty('--soft', '#4a5568'); root.style.setProperty('--text', '#f7fafc'); root.style.setProperty('--box-border', '#4a5568'); root.style.setProperty('--card-bg', 'rgba(45,55,72,0.9)');
+        } else if (skinId === 'skin_fairy') {
+            root.style.setProperty('--primary', '#38a169'); root.style.setProperty('--bg', '#f0fff4'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#d69e2e'); root.style.setProperty('--soft', '#c6f6d5'); root.style.setProperty('--text', '#22543d'); root.style.setProperty('--box-border', '#9ae6b4'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+        } else if (skinId === 'skin_royal') {
+            root.style.setProperty('--primary', '#b7791f'); root.style.setProperty('--bg', '#fffff0'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#e53e3e'); root.style.setProperty('--soft', '#fefcbf'); root.style.setProperty('--text', '#744210'); root.style.setProperty('--box-border', '#f6e05e'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+        } else {
+            root.style.setProperty('--primary', '#2b6cb0'); root.style.setProperty('--bg', '#f7fafc'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#ed8936'); root.style.setProperty('--soft', '#ebf8ff'); root.style.setProperty('--text', '#2d3748'); root.style.setProperty('--box-border', '#edf2f7'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+        }
     }
 
     function showPage(id) {
+        if (id !== 'page-shop' && previewingSkinId !== null) endPreview();
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -352,7 +388,6 @@
 
     function goToCategory() {
         const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
-        
         let fairyTaleStars = 0;
         scenariosData.fairyTale.forEach(s => {
             const epHistory = history.filter(h => h.title === s.title);
@@ -361,33 +396,22 @@
         });
 
         const isUnlocked = fairyTaleStars >= 30; 
-        
         const lockGreat = document.getElementById('lock-greatPeople');
         const lockClassics = document.getElementById('lock-classics');
         const cardGreat = document.getElementById('cat-greatPeople');
         const cardClassics = document.getElementById('cat-classics');
 
         if (isUnlocked) {
-            lockGreat.style.display = 'none';
-            lockClassics.style.display = 'none';
-            cardGreat.classList.remove('locked');
-            cardClassics.classList.remove('locked');
+            lockGreat.style.display = 'none'; lockClassics.style.display = 'none'; cardGreat.classList.remove('locked'); cardClassics.classList.remove('locked');
         } else {
             const lockMsg = `🔒 봉인됨<br><span style="font-size:0.9rem; font-weight:normal; margin-top:5px;">(동화의 숲: ${fairyTaleStars}/30별 필요)</span>`;
-            lockGreat.innerHTML = lockMsg;
-            lockClassics.innerHTML = lockMsg;
-            lockGreat.style.display = 'flex';
-            lockClassics.style.display = 'flex';
-            cardGreat.classList.add('locked');
-            cardClassics.classList.add('locked');
+            lockGreat.innerHTML = lockMsg; lockClassics.innerHTML = lockMsg; lockGreat.style.display = 'flex'; lockClassics.style.display = 'flex'; cardGreat.classList.add('locked'); cardClassics.classList.add('locked');
         }
-
         showPage('page-category');
     }
 
     function startQuiz(category) {
         currentCategory = category;
-        
         const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
         const clearedTitles = history.filter(h => h.stars === 3).map(h => h.title);
         
@@ -397,36 +421,22 @@
         if (qState) {
             s = scenariosData[category].find(x => x.title === qState.title);
             if (s && clearedTitles.includes(s.title)) {
-                s = null; 
-                delete ongoingQuests[category];
-                localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+                s = null; delete ongoingQuests[category]; localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
             }
         }
 
         if (!s) {
             const availableScenarios = scenariosData[category].filter(scen => !clearedTitles.includes(scen.title));
-            if (availableScenarios.length === 0) {
-                alert("🎉 대단해요! 이 세계의 모든 에피소드를 별 3개로 완벽하게 마스터했습니다! 다른 세계를 탐험해보세요.");
-                return;
-            }
-
+            if (availableScenarios.length === 0) return alert("🎉 대단해요! 이 세계의 모든 에피소드를 완벽하게 마스터했습니다!");
             const curIdx = Math.floor(Math.random() * availableScenarios.length);
             s = availableScenarios[curIdx];
-            
-            qState = {
-                title: s.title,
-                step: 1,
-                stars: 0,
-                answers: ['', '', '']
-            };
-            ongoingQuests[category] = qState;
-            localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+            qState = { title: s.title, step: 1, stars: 0, answers: ['', '', ''] };
+            ongoingQuests[category] = qState; localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
         }
 
         document.getElementById('scenario-image').innerText = s.emoji;
         document.getElementById('scenario-title').innerText = s.title;
         document.getElementById('scenario-desc').innerText = s.desc;
-        
         currentSessionStars = qState.stars;
         
         for(let i=1; i<=3; i++) {
@@ -436,54 +446,47 @@
             const btnEl = document.getElementById(`btn${i}`);
 
             if (i < qState.step) {
-                stepEl.className = 'step-container step-done';
-                qEl.value = qState.answers[i-1];
-                resEl.className = "result-box pass";
-                resEl.innerHTML = "✨ 지식 정제 성공!";
-                resEl.style.display = 'block';
-                btnEl.style.display = 'none';
+                stepEl.className = 'step-container step-done'; qEl.value = qState.answers[i-1]; resEl.className = "result-box pass"; resEl.innerHTML = "✨ 지식 정제 성공!"; resEl.style.display = 'block'; btnEl.style.display = 'none';
             } else if (i === qState.step) {
-                stepEl.className = 'step-container step-active';
-                qEl.value = qState.answers[i-1] || '';
-                resEl.style.display = 'none';
-                btnEl.style.display = 'block';
-                btnEl.disabled = false;
-                btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
+                stepEl.className = 'step-container step-active'; qEl.value = qState.answers[i-1] || ''; resEl.style.display = 'none'; btnEl.style.display = 'block'; btnEl.disabled = false; btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
             } else {
-                stepEl.className = 'step-container';
-                qEl.value = '';
-                resEl.style.display = 'none';
-                btnEl.style.display = 'block';
-                btnEl.disabled = false;
-                btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
+                stepEl.className = 'step-container'; qEl.value = ''; resEl.style.display = 'none'; btnEl.style.display = 'block'; btnEl.disabled = false; btnEl.innerText = i === 3 ? "최종 보물 완성하기" : "연금술사님께 물어보기";
             }
         }
 
         if (qState.step > 1) {
             document.getElementById('btn-save').style.display = 'block';
-            if (qState.step > 3) {
-                document.getElementById('btn-save').innerText = "🎉 3성 달성! 완벽하게 마스터했습니다!";
-            } else {
-                document.getElementById('btn-save').innerText = "🎉 지금까지 내용 기록장에 저장";
-            }
+            document.getElementById('btn-save').innerText = qState.step > 3 ? "🎉 3성 달성! 완벽하게 마스터했습니다!" : "🎉 지금까지 내용 기록장에 저장";
         } else {
             document.getElementById('btn-save').style.display = 'none';
         }
-
         showPage('page-quiz');
     }
 
-    function shootConfetti() {
-        if (!equippedConfetti) return; 
-        const item = shopItems.find(i => i.id === equippedConfetti);
-        if (!item) return;
+    // 🎇 마법 효과 종합 세트 함수
+    function shootSpecificEffect(effectId) {
+        if (!effectId) return;
 
-        confetti({
-            particleCount: item.count,
-            spread: 80,
-            origin: { y: 0.6 },
-            colors: item.colors
-        });
+        if (effectId === 'effect_red') {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#ff0000', '#bb0000', '#ff8888'] });
+        } else if (effectId === 'effect_green') {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#00ff00', '#00bb00', '#88ff88'] });
+        } else if (effectId === 'effect_tricolor') {
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'] });
+        } else if (effectId === 'effect_potion') {
+            confetti({ particleCount: 150, spread: 120, startVelocity: 45, origin: { y: 0.5 }, colors: ['#9b59b6', '#8e44ad', '#2ecc71', '#ff00ff'] });
+        } else if (effectId === 'effect_meteor') {
+            confetti({ particleCount: 200, spread: 160, startVelocity: 30, origin: { y: 0.1 }, colors: ['#FFD700', '#FDB813', '#FF8C00'] });
+        } else if (effectId === 'effect_quake') {
+            const app = document.getElementById('main-app');
+            app.classList.add('quake-active');
+            setTimeout(() => app.classList.remove('quake-active'), 800);
+            confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 }, colors: ['#FFD700', '#FFFFFF'] });
+        } else if (effectId === 'effect_fireworks') {
+            confetti({ particleCount: 80, spread: 60, origin: { x: 0.2, y: 0.5 }, colors: ['#ff0000', '#ff8888'] });
+            setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { x: 0.8, y: 0.5 }, colors: ['#0000ff', '#8888ff'] }), 300);
+            setTimeout(() => confetti({ particleCount: 150, spread: 120, origin: { x: 0.5, y: 0.3 }, colors: ['#ffff00', '#00ff00', '#ff00ff'] }), 700);
+        }
     }
 
     async function checkStep(step) {
@@ -493,14 +496,11 @@
         const btn = document.getElementById(`btn${step}`);
         const res = document.getElementById(`res${step}`);
         
-        btn.disabled = true;
-        btn.innerText = "🧙‍♂️ 지식을 정제하고 있어요...";
-        res.style.display = "block";
-        res.className = "result-box";
-        res.innerText = "연금술사님이 질문의 가치를 확인하고 있어요...";
+        btn.disabled = true; btn.innerText = "🧙‍♂️ 지식을 정제하고 있어요...";
+        res.style.display = "block"; res.className = "result-box"; res.innerText = "연금술사님이 질문의 가치를 확인하고 있어요...";
 
+        // 🌟 다시 안전하고 빠른 2.0 플래시 엔진으로 완벽 롤백! 🌟
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        
         const currentTitle = document.getElementById('scenario-title').innerText;
         const s = scenariosData[currentCategory].find(x => x.title === currentTitle);
 
@@ -508,11 +508,8 @@
 제시된 이야기와 학생의 질문이 관련이 있고 단계(1단계:사실, 2단계:이유, 3단계:상상)에 맞는지 심사해.
 
 [답변 가이드]
-1. 지식 설명은 무조건 '1~2줄'로 아주 짧고 핵심만 간결하게 해! 길게 설명하지 마!
-2. 답변의 마지막 줄에는 반드시 다음 단계로 유도하는 다정한 문구를 명확하게 넣어줘!
-   - 1단계 통과 시: "이제 2단계 궁금 질문(왜?)을 해볼까?"
-   - 2단계 통과 시: "이제 마지막 3단계 새롬 질문(만약 ~라면?)에 도전해봐!"
-   - 3단계 통과 시: "지식의 황금이 완벽하게 만들어졌어!"
+1. 지식 설명은 무조건 '1~2줄'로 아주 짧고 핵심만 간결하게 해!
+2. 답변 마지막 줄에는 반드시 다음 단계를 유도해줘! (예: 이제 2단계 궁금 질문을 해볼까?)
 
 반드시 JSON {"isPass": boolean, "feedback": "짧은답변+유도문구"} 형식으로만 대답해.`;
 
@@ -531,24 +528,19 @@
             const result = JSON.parse(data.candidates[0].content.parts[0].text);
             
             if (result.isPass) {
-                shootConfetti(); 
+                shootSpecificEffect(equippedEffect); // 장착한 마법 효과 발사!
                 
-                currentSessionStars++;
-                totalStars++;
-                localStorage.setItem('alchemist_total_stars', totalStars);
-                updateTopBar();
+                currentSessionStars++; totalStars++;
+                localStorage.setItem('alchemist_total_stars', totalStars); updateTopBar(); 
 
                 res.className = "result-box pass";
                 res.innerHTML = "✨ ⭐ 별 1개 획득!<br>" + result.feedback.replace(/\n/g, '<br>');
                 
                 let qState = ongoingQuests[currentCategory];
-                qState.stars = currentSessionStars;
-                qState.answers[step-1] = qVal;
-                qState.step = step + 1;
+                qState.stars = currentSessionStars; qState.answers[step-1] = qVal; qState.step = step + 1;
                 localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
 
-                btn.style.display = "none";
-                document.getElementById('btn-save').style.display = 'block';
+                btn.style.display = "none"; document.getElementById('btn-save').style.display = 'block';
 
                 if(step < 3) {
                     document.getElementById(`step${step}`).className = "step-container step-done";
@@ -561,52 +553,33 @@
                     document.getElementById('btn-save').innerText = "🎉 3성 달성! 완벽하게 마스터했습니다!";
                 }
             } else {
-                res.className = "result-box fail";
-                res.innerHTML = "⚠️ 조금 더 고민해볼까?<br>" + result.feedback.replace(/\n/g, '<br>');
-                btn.disabled = false;
-                btn.innerText = "다시 질문하기";
+                res.className = "result-box fail"; res.innerHTML = "⚠️ 조금 더 고민해볼까?<br>" + result.feedback.replace(/\n/g, '<br>');
+                btn.disabled = false; btn.innerText = "다시 질문하기";
             }
         } catch (e) {
-            res.className = "result-box fail";
-            res.innerHTML = "🧙‍♂️ <b>앗! 연금술 도구가 과부하되었어요!</b><br>잠시만 기다렸다가 다시 '물어보기'를 눌러주세요.";
-            btn.disabled = false; 
-            btn.innerText = "다시 물어보기";
+            res.className = "result-box fail"; res.innerHTML = "🧙‍♂️ <b>앗! 연금술 도구가 과부하되었어요!</b><br>잠시만 기다렸다가 다시 '물어보기'를 눌러주세요.";
+            btn.disabled = false; btn.innerText = "다시 물어보기";
         }
     }
 
     function saveAndGoHome() {
-        if (currentSessionStars === 0) {
-            alert("통과한 질문이 없어서 저장할 수 없어요!");
-            return;
-        }
-
+        if (currentSessionStars === 0) return alert("통과한 질문이 없어서 저장할 수 없어요!");
         const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
         const currentTitle = document.getElementById('scenario-title').innerText;
         let qState = ongoingQuests[currentCategory];
         
         const existingIdx = history.findIndex(h => h.title === currentTitle && h.stars < 3);
         const record = { 
-            date: new Date().toLocaleString(), 
-            title: currentTitle, 
-            stars: currentSessionStars,
-            q1: qState.answers[0] || '(건너뜀)', 
-            q2: qState.answers[1] || '(건너뜀)', 
-            q3: qState.answers[2] || '(건너뜀)' 
+            date: new Date().toLocaleString(), title: currentTitle, stars: currentSessionStars,
+            q1: qState.answers[0] || '(건너뜀)', q2: qState.answers[1] || '(건너뜀)', q3: qState.answers[2] || '(건너뜀)' 
         };
         
-        if (existingIdx >= 0) {
-            history[existingIdx] = record; 
-        } else {
-            history.push(record);
-        }
-        
+        if (existingIdx >= 0) history[existingIdx] = record; else history.push(record);
         localStorage.setItem('alchemist_history_v2', JSON.stringify(history));
         
         if (qState && qState.step > 3) {
-            delete ongoingQuests[currentCategory];
-            localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
+            delete ongoingQuests[currentCategory]; localStorage.setItem('alchemist_ongoing_quests', JSON.stringify(ongoingQuests));
         }
-
         alert(`⭐ 별 ${currentSessionStars}개와 함께 기록장에 저장되었습니다! 🎉`);
         goToCategory(); 
     }
@@ -615,79 +588,107 @@
         const list = document.getElementById('history-list');
         const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
         list.innerHTML = history.length ? history.reverse().map(h => `
-            <div style="background:#f8fafc; border-radius:18px; padding:20px; margin-bottom:15px; border:1px solid #e2e8f0;">
+            <div style="background:var(--white); border-radius:18px; padding:20px; margin-bottom:15px; border:1px solid var(--box-border);">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                     <strong style="color:var(--primary); font-size:1.1rem;">[${h.title}]</strong>
                     <span style="color:var(--accent); font-weight:800;">
                         ${Array(h.stars).fill('⭐').join('')}${Array(3 - h.stars).fill('☆').join('')}
                     </span>
                 </div>
-                <small style="color:#a0aec0; display:block; margin-bottom:10px;">📅 ${h.date}</small>
-                <div style="font-size:0.9rem; color:#4a5568; background:white; padding:10px; border-radius:10px;">
+                <small style="color:var(--text); opacity:0.6; display:block; margin-bottom:10px;">📅 ${h.date}</small>
+                <div style="font-size:0.9rem; color:var(--text); background:var(--bg); padding:10px; border-radius:10px;">
                     <p style="margin:4px 0;">🔍 <b>사실:</b> ${h.q1}</p>
                     <p style="margin:4px 0;">🤔 <b>궁금:</b> ${h.q2}</p>
                     <p style="margin:4px 0;">💡 <b>새롬:</b> ${h.q3}</p>
                 </div>
-            </div>`).join('') : '<p style="text-align:center; padding:50px; color:#a0aec0;">아직 저장된 보물이 없어요.</p>';
+            </div>`).join('') : '<p style="text-align:center; padding:50px; color:var(--text); opacity:0.6;">아직 저장된 보물이 없어요.</p>';
     }
 
+    function previewSkin(id) { previewingSkinId = id; applyTheme(id); renderShop(); }
+    function endPreview() { previewingSkinId = null; applyTheme(equippedSkin); renderShop(); }
+
+    // 🎨 상점 렌더링 (모든 아이템 미리보기 지원!)
     function renderShop() {
         const container = document.getElementById('shop-items-container');
-        
-        if(inventory.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#e53e3e; font-weight:bold; margin-bottom:20px;">현재 장착된 폭죽이 없어 질문을 통과해도 폭죽이 터지지 않아요! 별을 모아 구매해보세요.</p>`;
-        } else {
-            container.innerHTML = ``;
+        container.innerHTML = ``;
+
+        if(equippedSkin !== 'default' && previewingSkinId === null) {
+            container.innerHTML += `<div style="text-align:right; margin-bottom:15px;"><button onclick="equipSkin('default')" style="width:auto; padding:8px 15px; font-size:0.8rem; background:var(--box-border); color:var(--text);">스킨 원래대로 🔄</button></div>`;
         }
 
         container.innerHTML += shopItems.map(item => {
             const isOwned = inventory.includes(item.id);
-            const isEquipped = equippedConfetti === item.id;
+            const isEquipped = (item.type.includes('effect') && equippedEffect === item.id) || (item.type === 'skin' && equippedSkin === item.id);
             
             let btnHtml = '';
+
             if (isEquipped) {
                 btnHtml = `<button class="shop-btn btn-equipped">장착 중</button>`;
             } else if (isOwned) {
-                btnHtml = `<button class="shop-btn btn-equip" onclick="equipItem('${item.id}')">장착하기</button>`;
+                btnHtml = `<button class="shop-btn btn-equip" onclick="${item.type.includes('effect') ? `equipEffect('${item.id}')` : `equipSkin('${item.id}')`}">장착하기</button>`;
             } else {
-                btnHtml = `<button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price})">⭐ ${item.price} 구매</button>`;
+                if (item.type === 'skin') {
+                    if (previewingSkinId === item.id) {
+                        btnHtml = `
+                            <div style="display:flex; gap:6px; width:100%;">
+                                <button class="shop-btn btn-preview-active" onclick="endPreview()">👀 종료</button>
+                                <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
+                            </div>
+                        `;
+                    } else {
+                        btnHtml = `
+                            <div style="display:flex; gap:6px; width:100%;">
+                                <button class="shop-btn btn-preview" onclick="previewSkin('${item.id}')">👀 구경</button>
+                                <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
+                            </div>
+                        `;
+                    }
+                } else {
+                    btnHtml = `
+                        <div style="display:flex; gap:6px; width:100%;">
+                            <button class="shop-btn btn-preview" onclick="shootSpecificEffect('${item.id}')">✨ 미리보기</button>
+                            <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
+                        </div>
+                    `;
+                }
             }
+
+            let badge = '';
+            if(item.type === 'skin') badge = `<span class="badge-skin">마법 테마</span>`;
+            else if(item.type === 'premium_effect') badge = `<span class="badge-premium">프리미엄 효과</span>`;
+            else badge = `<span class="badge-effect">특수 효과</span>`;
 
             return `
                 <div class="shop-item">
                     <div class="shop-item-info">
+                        ${badge}
                         <div class="shop-item-title">${item.name}</div>
                         <div class="shop-item-desc">${item.desc}</div>
-                        ${!isOwned ? `<div class="shop-item-price">가격: 별 ${item.price}개</div>` : ''}
                     </div>
-                    <div>${btnHtml}</div>
+                    <div style="display:flex; align-items:center; width:100%; margin-top:10px;">
+                        ${btnHtml}
+                    </div>
                 </div>
             `;
         }).join('');
         updateTopBar();
     }
 
-    function buyItem(id, price) {
-        if (totalStars < price) {
-            alert(`별이 부족합니다! (현재: ${totalStars}개 / 필요: ${price}개)\n질문 탐구를 해서 별을 더 모아보세요!`);
-            return;
-        }
-        
+    function buyItem(id, price, type) {
+        if (totalStars < price) return alert(`별이 부족합니다! (현재: ${totalStars}개 / 필요: ${price}개)`);
         if (confirm(`별 ${price}개를 사용하여 구매하시겠습니까?`)) {
-            totalStars -= price;
-            localStorage.setItem('alchemist_total_stars', totalStars);
-            inventory.push(id);
-            localStorage.setItem('alchemist_inventory', JSON.stringify(inventory));
-            equipItem(id);
-            alert("구매 성공! 바로 장착되었습니다. 🎉 이제 질문을 통과하면 폭죽이 터집니다!");
+            totalStars -= price; localStorage.setItem('alchemist_total_stars', totalStars);
+            inventory.push(id); localStorage.setItem('alchemist_inventory', JSON.stringify(inventory));
+            
+            if(type === 'skin') { previewingSkinId = null; equipSkin(id); } 
+            else { equipEffect(id); }
+            
+            alert("구매 성공! 바로 장착되었습니다. 🎉");
         }
     }
 
-    function equipItem(id) {
-        equippedConfetti = id;
-        localStorage.setItem('alchemist_equipped', equippedConfetti);
-        renderShop();
-    }
+    function equipEffect(id) { equippedEffect = id; localStorage.setItem('alchemist_equipped_effect', equippedEffect); renderShop(); }
+    function equipSkin(id) { equippedSkin = id; localStorage.setItem('alchemist_equipped_skin', equippedSkin); applyTheme(id); renderShop(); }
 </script>
 </body>
 </html>
