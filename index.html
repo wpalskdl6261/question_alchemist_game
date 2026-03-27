@@ -3,61 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 앱 구동을 위한 메타 태그 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f7fafc">
     <title>질문 연금술사</title>
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+    <!-- 🍭 귀여운 젤리 폰트 (Jua) 적용! -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     
     <style>
-        /* CSS 변수: 스킨 기능으로 색상이 실시간으로 바뀝니다! */
+        /* 🎨 귀엽고 팝한 디자인을 위한 CSS 변수 (스킨 적용 시 변경됨) */
         :root { 
-            --primary: #2b6cb0; --bg: #f7fafc; --white: #ffffff; 
-            --accent: #ed8936; --soft: #ebf8ff; --text: #2d3748; 
-            --box-border: #edf2f7; --card-bg: rgba(255,255,255,0.9);
+            --primary: #FF6B81;       /* 메인 컬러: 젤리 핑크 */
+            --primary-shadow: #E84159; 
+            --bg: #FFF4F4;            /* 배경: 부드러운 파스텔 핑크 */
+            --white: #FFFFFF; 
+            --accent: #48DBFB;        /* 포인트 컬러: 솜사탕 하늘색 */
+            --accent-shadow: #0ABDE3;
+            --text: #2D3436;          /* 글자색: 진한 차콜 */
+            --box-border: #FFEAA7;    /* 박스 테두리: 연노랑 */
+            --box-shadow: #FDCB6E;    /* 박스 그림자: 진노랑 */
+            --card-bg: #FFFFFF;
+            --soft: #FFF9E6;          /* 부드러운 포인트 배경 */
         }
         
         * { 
             box-sizing: border-box; 
-            font-family: 'Pretendard', sans-serif; 
+            font-family: 'Jua', sans-serif; 
             -webkit-font-smoothing: antialiased; 
             user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
-            transition: background-color 0.4s, color 0.4s, border-color 0.4s; 
+            transition: background-color 0.4s, color 0.4s, border-color 0.4s, box-shadow 0.4s; 
         }
         
         body { 
             background-color: var(--bg); margin: 0; display: flex; justify-content: center; color: var(--text); 
             -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; 
+            /* 기본 도트 배경 효과 */
+            background-image: radial-gradient(var(--box-border) 2px, transparent 2px);
+            background-size: 20px 20px;
+        }
+
+        /* 🌟 스킨 전용 화려한 배경 & 후광 애니메이션 🌟 */
+        @keyframes driftBg { 100% { background-position: 40px 40px, 60px 60px; } }
+        @keyframes floatBg { 100% { background-position: 10px 30px, -20px 50px; } }
+        @keyframes royalShimmer { 0% {background-position: 0% 50%} 50% {background-position: 100% 50%} 100% {background-position: 0% 50%} }
+
+        /* 🔮 흑마법사 스킨 효과 (스멀스멀 움직이는 어둠의 입자) */
+        body.skin_dark {
+            background-color: #2C3E50 !important;
+            background-image: radial-gradient(rgba(155, 89, 182, 0.4) 3px, transparent 3px), radial-gradient(rgba(142, 68, 173, 0.4) 2px, transparent 2px) !important;
+            background-size: 40px 40px !important;
+            background-position: 0 0, 20px 20px !important;
+            animation: driftBg 15s linear infinite !important;
+        }
+        body.skin_dark .app-container { box-shadow: 0 0 60px rgba(155, 89, 182, 0.5); }
+
+        /* 🧚‍♀️ 숲속의 요정 스킨 효과 (둥둥 떠다니는 숲의 정령) */
+        body.skin_fairy {
+            background-color: #E3FDFD !important;
+            background-image: radial-gradient(rgba(29, 209, 161, 0.4) 4px, transparent 4px), radial-gradient(rgba(16, 172, 132, 0.4) 2px, transparent 2px) !important;
+            background-size: 50px 50px !important;
+            background-position: 0 0, 25px 25px !important;
+            animation: floatBg 10s ease-in-out infinite alternate !important;
+        }
+        body.skin_fairy .app-container { box-shadow: 0 0 50px rgba(29, 209, 161, 0.4); }
+
+        /* 👑 황실 대마법사 스킨 효과 (일렁이는 황금빛 물결) */
+        body.skin_royal {
+            background: linear-gradient(-45deg, #FFF2E6, #FFEAA7, #FDCB6E, #FFF2E6) !important;
+            background-size: 400% 400% !important;
+            animation: royalShimmer 8s ease infinite !important;
+        }
+        body.skin_royal .app-container { 
+            border: 2px solid #FDCB6E; 
+            box-shadow: 0 0 60px rgba(254, 202, 87, 0.5), inset 0 0 20px rgba(254, 202, 87, 0.2); 
         }
         
         .app-container { 
             width: 100%; max-width: 500px; min-height: 100vh; 
-            background: var(--white); box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            background: var(--bg); 
             padding-bottom: 80px; position: relative; overflow-x: hidden; 
+            transition: box-shadow 0.5s ease; /* 후광 부드럽게 */
         }
+
+        /* 🌈 둥둥 뜨는 귀여운 애니메이션 */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+        .floating-icon { animation: float 3s ease-in-out infinite; display: inline-block; }
 
         /* ⚡ 대지의 진동 스크롤 효과용 애니메이션 */
         @keyframes quakeAnim {
-            0% { transform: translate(1px, 1px) rotate(0deg); box-shadow: 0 0 0px gold; }
-            10% { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: inset 0 0 30px gold; }
-            20% { transform: translate(-3px, 0px) rotate(1deg); box-shadow: inset 0 0 50px gold; }
-            30% { transform: translate(3px, 2px) rotate(0deg); box-shadow: inset 0 0 60px gold; }
-            40% { transform: translate(1px, -1px) rotate(1deg); box-shadow: inset 0 0 50px gold; }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); box-shadow: inset 0 0 30px gold; }
-            100% { transform: translate(0px, 0px) rotate(0deg); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-2px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            100% { transform: translate(0px, 0px) rotate(0deg); }
         }
         .quake-active { animation: quakeAnim 0.8s ease-in-out; }
 
         /* 🟢🟡🔴 API 상태 구슬 CSS */
         .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
+            width: 12px; height: 12px; border-radius: 50%;
             transition: all 0.3s ease; display: inline-block;
+            border: 2px solid white;
         }
-        .status-green { background-color: #48bb78; box-shadow: 0 0 8px rgba(72, 187, 120, 0.6); }
-        .status-yellow { background-color: #ecc94b; box-shadow: 0 0 8px rgba(236, 201, 75, 0.8); animation: pulseYellow 1s infinite; }
-        .status-red { background-color: #e53e3e; box-shadow: 0 0 8px rgba(229, 62, 62, 0.8); }
+        .status-green { background-color: #1DD1A1; box-shadow: 0 0 10px rgba(29, 209, 161, 0.6); }
+        .status-yellow { background-color: #FECA57; box-shadow: 0 0 10px rgba(254, 202, 87, 0.8); animation: pulseYellow 1s infinite; }
+        .status-red { background-color: #FF6B6B; box-shadow: 0 0 10px rgba(255, 107, 107, 0.8); }
         
         @keyframes pulseYellow {
             0% { opacity: 1; transform: scale(1); }
@@ -65,175 +127,214 @@
             100% { opacity: 1; transform: scale(1); }
         }
 
-        textarea, input { user-select: text; -webkit-user-select: text; color: #2d3748; }
+        textarea, input { user-select: text; -webkit-user-select: text; color: var(--text); }
 
         .top-status-bar {
             position: sticky; top: 0; z-index: 100;
-            background: var(--card-bg); backdrop-filter: blur(10px);
-            padding: 12px 20px; border-bottom: 1px solid var(--box-border);
+            background: var(--card-bg); 
+            padding: 16px 20px; 
+            border-bottom: 4px solid var(--box-border);
+            border-radius: 0 0 24px 24px;
             display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 0 var(--box-shadow);
+            margin-bottom: 20px;
         }
         
-        #user-title-display { font-weight: 800; color: var(--primary); font-size: 0.95rem; text-shadow: 0px 1px 2px rgba(0,0,0,0.05); }
-        .star-count-display { font-weight: 800; color: var(--accent); font-size: 1.1rem; display: flex; align-items: center; gap: 5px; }
+        #user-title-display { font-size: 1.15rem; color: var(--primary); text-shadow: 1px 1px 0px rgba(0,0,0,0.05); }
+        .star-count-display { font-size: 1.3rem; color: var(--accent); display: flex; align-items: center; gap: 5px; text-shadow: 1px 1px 0px rgba(0,0,0,0.1); }
 
-        .page { display: none; padding: 20px 24px; animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .page { display: none; padding: 10px 24px 30px; animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 
-        h1 { color: var(--primary); text-align: center; margin-top: 20px; font-size: 2.2rem; letter-spacing: -1.5px; font-weight: 800; }
-        .sub-title { text-align: center; color: var(--text); opacity: 0.7; font-weight: 600; margin-top: -5px; margin-bottom: 40px; }
+        h1 { color: var(--primary); text-align: center; margin-top: 10px; font-size: 2.8rem; letter-spacing: 1px; text-shadow: 2px 2px 0px var(--box-border); }
+        .sub-title { text-align: center; color: var(--text); opacity: 0.8; margin-top: -10px; margin-bottom: 30px; font-size: 1.2rem; }
 
         .menu-group { display: flex; flex-direction: column; gap: 16px; }
         
+        /* 🎈 둥글고 귀여운 기본 버튼 스타일 */
         button { 
-            padding: 18px; border: none; border-radius: 18px; font-size: 1.1rem; 
-            font-weight: 700; cursor: pointer; transition: 0.2s all; width: 100%;
+            padding: 18px; border: 3px solid rgba(0,0,0,0.05); border-radius: 999px; font-size: 1.25rem; 
+            cursor: pointer; transition: 0.1s all; width: 100%;
             display: flex; align-items: center; justify-content: center; gap: 10px;
+            position: relative; letter-spacing: 1px;
         }
         
-        .btn-main { background: var(--primary); color: white; box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
-        .btn-main:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
-        .btn-save-mini { background: var(--accent); color: white; box-shadow: 0 4px 0 rgba(0,0,0,0.2); margin-top: 20px; }
-        .btn-save-mini:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+        /* 🍬 알록달록 캔디 버튼 (메인 메뉴용) */
+        .btn-candy-1 { background: #1DD1A1; color: white; border-color: #10AC84; box-shadow: 0 6px 0 #10AC84; } /* 민트맛 */
+        .btn-candy-1:active { transform: translateY(6px); box-shadow: 0 0 0 #10AC84; }
         
-        .btn-sub { background: var(--soft); color: var(--primary); }
-        .btn-shop { background: var(--bg); color: var(--accent); border: 2px solid var(--accent); box-shadow: 0 4px 0 var(--accent); }
-        .btn-shop:active { transform: translateY(4px); box-shadow: none; }
-        .btn-nav { background: var(--box-border); color: var(--text); margin-top: 20px; }
+        .btn-candy-2 { background: #FF6B81; color: white; border-color: #E84159; box-shadow: 0 6px 0 #E84159; } /* 딸기맛 */
+        .btn-candy-2:active { transform: translateY(6px); box-shadow: 0 0 0 #E84159; }
+        
+        .btn-candy-3 { background: #48DBFB; color: white; border-color: #0ABDE3; box-shadow: 0 6px 0 #0ABDE3; } /* 소다맛 */
+        .btn-candy-3:active { transform: translateY(6px); box-shadow: 0 0 0 #0ABDE3; }
+        
+        .btn-candy-4 { background: #FECA57; color: white; border-color: #F39C12; box-shadow: 0 6px 0 #F39C12; } /* 바나나맛 */
+        .btn-candy-4:active { transform: translateY(6px); box-shadow: 0 0 0 #F39C12; }
 
+        /* 서브 및 기타 버튼들 */
+        .btn-main { background: var(--primary); color: white; box-shadow: 0 6px 0 var(--primary-shadow); border-color: var(--primary-shadow); }
+        .btn-main:active { transform: translateY(6px); box-shadow: 0 0 0 var(--primary-shadow); }
+        
+        .btn-save-mini { background: var(--accent); color: white; box-shadow: 0 6px 0 var(--accent-shadow); border-color: var(--accent-shadow); margin-top: 20px; }
+        .btn-save-mini:active { transform: translateY(6px); box-shadow: 0 0 0 var(--accent-shadow); }
+        
+        .btn-nav { background: #C8D6E5; color: #222F3E; border: 3px solid #8395A7; box-shadow: 0 6px 0 #8395A7; margin-top: 20px; }
+        .btn-nav:active { transform: translateY(6px); box-shadow: 0 0 0 #8395A7; }
+
+        /* 🎁 둥글둥글한 박스 스타일 */
         .scenario-box { 
-            background: var(--soft);
-            border-radius: 20px; padding: 20px; margin-bottom: 25px; 
-            text-align: center; border: 1px solid var(--accent);
+            background: var(--card-bg);
+            border-radius: 30px; padding: 25px 20px; margin-bottom: 25px; 
+            text-align: center; border: 4px solid var(--box-border);
+            box-shadow: 0 8px 0 var(--box-shadow);
         }
-        .scenario-img { font-size: 4rem; margin-bottom: 10px; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .scenario-img { font-size: 4.5rem; margin-bottom: 10px; display: block; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); }
         
         .step-container { 
-            margin-bottom: 20px; padding: 20px; border-radius: 20px; 
-            border: 2px solid var(--box-border); display: none; background: var(--white);
+            margin-bottom: 25px; padding: 25px 20px; border-radius: 30px; 
+            border: 4px solid var(--box-border); display: none; background: var(--card-bg);
+            box-shadow: 0 8px 0 var(--box-shadow);
         }
-        .step-active { display: block; border-color: var(--primary); box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .step-done { display: block; opacity: 0.7; pointer-events: none; background: var(--bg); }
+        .step-active { display: block; border-color: var(--primary); box-shadow: 0 8px 0 var(--primary-shadow); }
+        .step-done { display: block; opacity: 0.6; pointer-events: none; background: var(--soft); box-shadow: none; transform: translateY(8px); }
 
         .example-tag { 
-            font-size: 0.85rem; color: #4a5568; background: #edf2f7; 
-            padding: 10px 15px; border-radius: 12px; display: block; 
-            margin-bottom: 15px; border: 1px dashed #cbd5e0; line-height: 1.5; font-weight: 500;
+            font-size: 1rem; color: #576574; background: #F8EFBA; 
+            padding: 12px 18px; border-radius: 20px; display: block; 
+            margin-bottom: 15px; border: 2px dashed #FDCB6E; line-height: 1.5;
         }
 
         textarea { 
-            width: 100%; height: 100px; border: 2px solid #e2e8f0; 
-            border-radius: 16px; padding: 15px; margin: 10px 0; resize: none; 
-            font-size: 1rem; line-height: 1.6; background: #fff;
+            width: 100%; height: 110px; border: 3px solid var(--box-border); 
+            border-radius: 20px; padding: 18px; margin: 15px 0; resize: none; 
+            font-size: 1.15rem; line-height: 1.6; background: #fff;
+            transition: 0.2s;
         }
-        textarea:focus { border-color: var(--primary); outline: none; }
+        textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(255, 107, 129, 0.2); }
 
-        .result-box { border-radius: 16px; padding: 18px; font-size: 1rem; margin-top: 15px; display: none; line-height: 1.8; white-space: pre-wrap; }
-        .pass { background: #f0fff4; color: #1a4731; border: 2px solid #c6f6d5; animation: pop 0.3s; }
-        .fail { background: #fff5f5; color: #9b2c2c; border: 2px solid #feb2b2; }
+        .result-box { 
+            border-radius: 20px; padding: 20px; font-size: 1.15rem;
+            margin-top: 15px; display: none; line-height: 1.6; white-space: pre-wrap; word-break: keep-all;
+            border: 3px solid transparent;
+        }
+        .pass { background: #E3FDFD; color: #10AC84; border-color: #1DD1A1; animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .fail { background: #FFEAA7; color: #FF6B6B; border-color: #FDCB6E; }
+        .error-msg { font-size: 0.95rem; color: #EE5253; background: #FFDEFE; padding: 12px; border-radius: 12px; margin-top: 10px; word-break: break-all; }
 
-        @keyframes pop { 0% { transform: scale(0.95); } 100% { transform: scale(1); } }
+        @keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
 
-        /* 상점 아이템 UI */
+        /* 🛍️ 귀여운 상점 아이템 */
         .shop-item {
-            background: var(--white); border: 2px solid var(--box-border); border-radius: 16px;
-            padding: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            background: var(--card-bg); border: 4px solid var(--box-border); border-radius: 24px;
+            padding: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
+            box-shadow: 0 6px 0 var(--box-shadow);
         }
         .shop-item-info { flex: 1; min-width: 60%; }
-        .shop-item-title { font-weight: 800; font-size: 1.1rem; color: var(--text); margin-bottom: 4px; }
-        .shop-item-desc { font-size: 0.85rem; color: var(--text); opacity:0.8; line-height: 1.4; }
-        .shop-item-price { font-weight: 800; color: var(--accent); margin-top: 5px; }
+        .shop-item-title { font-size: 1.3rem; color: var(--text); margin-bottom: 6px; }
+        .shop-item-desc { font-size: 1rem; color: var(--text); opacity:0.8; line-height: 1.4; }
+        .shop-item-price { color: var(--accent); margin-top: 8px; font-size: 1.2rem; }
         
-        .shop-btn { padding: 10px 15px; font-size: 0.9rem; border-radius: 10px; width: auto; margin: 0; flex: 1; text-align: center; }
-        .btn-buy { background: var(--accent); color: white; }
-        .btn-equip { background: var(--primary); color: white; }
-        .btn-equipped { background: var(--box-border); color: var(--text); pointer-events: none; }
-        .btn-preview { background: #e2e8f0; color: #4a5568; }
-        .btn-preview-active { background: #718096; color: white; border: 2px solid #4a5568; }
+        .shop-btn { padding: 12px 15px; font-size: 1.1rem; border-radius: 999px; width: auto; margin: 0; flex: 1; text-align: center; border-width: 3px; }
+        .btn-buy { background: var(--accent); color: white; border-color: var(--accent-shadow); box-shadow: 0 4px 0 var(--accent-shadow); }
+        .btn-buy:active { transform: translateY(4px); box-shadow: 0 0 0 var(--accent-shadow); }
+        .btn-equip { background: var(--primary); color: white; border-color: var(--primary-shadow); box-shadow: 0 4px 0 var(--primary-shadow); }
+        .btn-equip:active { transform: translateY(4px); box-shadow: 0 0 0 var(--primary-shadow); }
+        .btn-equipped { background: var(--box-border); color: var(--text); pointer-events: none; border-color: transparent; box-shadow: none; transform: translateY(4px); }
+        .btn-preview { background: #C8D6E5; color: #222F3E; border-color: #8395A7; box-shadow: 0 4px 0 #8395A7; }
+        .btn-preview:active { transform: translateY(4px); box-shadow: 0 0 0 #8395A7; }
+        .btn-preview-active { background: #576574; color: white; border-color: #222F3E; box-shadow: 0 4px 0 #222F3E; }
+        .btn-preview-active:active { transform: translateY(4px); box-shadow: 0 0 0 #222F3E; }
 
-        .cat-card { background: var(--white); border: 2px solid var(--box-border); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; }
-        .cat-card:active { transform: scale(0.98); border-color: var(--primary); }
-        .cat-icon { font-size: 3rem; margin-bottom: 10px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
-        .cat-title { font-weight: 800; font-size: 1.2rem; margin-bottom: 5px; color: var(--text); }
+        /* 🗂️ 카테고리 카드 */
+        .cat-card { 
+            background: var(--card-bg); border: 4px solid var(--box-border); border-radius: 30px; padding: 25px; 
+            text-align: center; margin-bottom: 20px; cursor: pointer; transition: 0.2s; position: relative; overflow: hidden; 
+            box-shadow: 0 8px 0 var(--box-shadow);
+        }
+        .cat-card:active { transform: translateY(8px); box-shadow: 0 0 0 var(--box-shadow); border-color: var(--primary); }
+        .cat-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); display: inline-block; }
+        .cat-card:hover .cat-icon { animation: float 2s ease-in-out infinite; }
+        .cat-title { font-size: 1.4rem; margin-bottom: 8px; color: var(--text); }
         
         .lock-overlay {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.55);
-            display: flex; justify-content: center; align-items: center; flex-direction: column; font-size: 1.25rem; font-weight: 800; color: #e53e3e; backdrop-filter: blur(1px); display: none; text-shadow: 0 1px 3px rgba(255, 255, 255, 1);
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 255, 255, 0.7);
+            display: flex; justify-content: center; align-items: center; flex-direction: column; font-size: 1.5rem; color: #FF6B81; backdrop-filter: blur(2px); display: none; text-shadow: 0 2px 4px rgba(255, 255, 255, 1);
         }
         .locked { pointer-events: none; }
 
-        .footer-logo { text-align: center; padding: 20px; opacity: 0.3; font-size: 0.75rem; color: var(--text); }
+        .footer-logo { text-align: center; padding: 20px; opacity: 0.4; font-size: 0.95rem; color: var(--text); }
         
-        /* 뱃지 */
-        .badge-skin { background: #805ad5; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
-        .badge-effect { background: #ed8936; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
-        .badge-premium { background: #e53e3e; color: white; padding: 3px 8px; border-radius: 8px; font-size: 0.7rem; margin-bottom: 5px; display: inline-block;}
+        /* 🏷️ 뱃지 */
+        .badge-skin { background: #A29BFE; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px; display: inline-block; border: 2px solid #6C5CE7;}
+        .badge-effect { background: #1DD1A1; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px; display: inline-block; border: 2px solid #10AC84;}
+        .badge-premium { background: #FF6B81; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 8px; display: inline-block; border: 2px solid #E84159;}
     </style>
 </head>
 <body>
 <div id="main-app" class="app-container">
     <div class="top-status-bar">
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
             <div id="api-status-dot" class="status-dot status-green" title="연결 양호"></div>
             <div id="user-title-display">🌱 견습 연금술사</div>
         </div>
         <div class="star-count-display">
             <span id="total-stars-display">0</span>
-            <span>⭐</span>
+            <span class="floating-icon">⭐</span>
         </div>
     </div>
 
     <div id="page-home" class="page active">
         <h1>🧪 질문 연금술사</h1>
-        <p class="sub-title">생각을 금으로 만드는 3단계 질문 탐구</p>
+        <p class="sub-title">생각을 금으로 만드는 마법의 시간!</p>
         <div class="menu-group">
-            <button class="btn-sub" onclick="showPage('page-intro')">📖 질문이란 무엇일까?</button>
-            <button class="btn-main" onclick="goToCategory()">✨ 질문 탐구 시작하기</button>
-            <button class="btn-sub" onclick="showPage('page-history'); loadHistory();">📂 나의 보물 기록장</button>
-            <button class="btn-shop" onclick="showPage('page-shop'); renderShop();">🛒 마법 연금술 상점</button>
+            <button class="btn-candy-1" onclick="showPage('page-intro')">📖 질문이란 무엇일까?</button>
+            <button class="btn-candy-2" onclick="goToCategory()">✨ 질문 탐구 시작하기</button>
+            <button class="btn-candy-3" onclick="showPage('page-history'); loadHistory();">📂 나의 보물 기록장</button>
+            <button class="btn-candy-4" onclick="showPage('page-shop'); renderShop();">🛒 마법 연금술 상점</button>
         </div>
-        <div class="footer-logo">QA App v5.2 (Gemini 2.0 Flash / Live Status)</div>
+        <div class="footer-logo">QA App v7.0 (Skin FX Edition)</div>
     </div>
 
     <div id="page-intro" class="page">
-        <h2 style="color: var(--primary);">📖 질문의 3단계</h2>
-        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--primary);">
-            <p><strong>🔎 1단계 사실질문 (Fact)</strong><br>눈앞의 상황에서 바로 정답을 찾는 질문이에요.</p>
-            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "사과는 어떤 색인가요?", "지금 누가 있나요?"</div>
+        <h2 style="color: var(--primary); text-align: center;">📖 질문의 3단계</h2>
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 24px; margin-bottom: 20px; border: 4px solid var(--primary); box-shadow: 0 6px 0 var(--primary-shadow);">
+            <p style="margin-top:0; font-size:1.1rem;"><strong>🔎 1단계 사실질문 (Fact)</strong><br>눈앞의 상황에서 바로 정답을 찾는 질문이에요.</p>
+            <div style="font-size: 1rem; color: #2D3436; background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 10px;">💡 "사과는 어떤 색인가요?", "지금 누가 있나요?"</div>
         </div>
-        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid var(--accent);">
-            <p><strong>🤔 2단계 궁금질문 (Why)</strong><br>눈에 보이지 않는 '이유'와 '마음'을 찾는 질문이에요.</p>
-            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "왜 사과가 떨어질까요?", "왜 그런 표정을 지을까요?"</div>
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 24px; margin-bottom: 20px; border: 4px solid var(--accent); box-shadow: 0 6px 0 var(--accent-shadow);">
+            <p style="margin-top:0; font-size:1.1rem;"><strong>🤔 2단계 궁금질문 (Why)</strong><br>눈에 보이지 않는 '이유'와 '마음'을 찾는 질문이에요.</p>
+            <div style="font-size: 1rem; color: #2D3436; background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 10px;">💡 "왜 사과가 떨어질까요?", "왜 그런 표정을 지을까요?"</div>
         </div>
-        <div style="background: var(--soft); padding: 20px; border-radius: 20px; margin-bottom: 15px; border-left: 6px solid #48bb78;">
-            <p><strong>💡 3단계 새롬질문 (If)</strong><br>만약 상황이 바뀐다면? 상상을 더하는 질문이에요.</p>
-            <div style="font-size: 0.9rem; color: #4a5568; background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top: 10px; border: 1px dashed #bee3f8;">💡 "만약 사과가 하늘로 떠오른다면 어떨까요?"</div>
+        <div style="background: var(--card-bg); padding: 25px; border-radius: 24px; margin-bottom: 20px; border: 4px solid #1DD1A1; box-shadow: 0 6px 0 #10AC84;">
+            <p style="margin-top:0; font-size:1.1rem;"><strong>💡 3단계 새롬질문 (If)</strong><br>만약 상황이 바뀐다면? 상상을 더하는 질문이에요.</p>
+            <div style="font-size: 1rem; color: #2D3436; background: var(--bg); padding: 12px; border-radius: 12px; margin-top: 10px;">💡 "만약 사과가 하늘로 떠오른다면 어떨까요?"</div>
         </div>
         <button class="btn-main" onclick="goToCategory()">완벽히 이해했어! 탐구 시작!</button>
         <button class="btn-nav" onclick="showPage('page-home')">돌아가기</button>
     </div>
 
     <div id="page-category" class="page">
-        <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px;">어떤 세계로 떠나볼까?</h2>
+        <h2 style="color: var(--primary); text-align: center; margin-bottom: 30px; -webkit-text-stroke: 1.5px var(--text); text-shadow: 4px 4px 0px var(--box-shadow); font-size: 2.2rem; letter-spacing: 1px;">어떤 세계로 떠나볼까?</h2>
         
         <div class="cat-card" id="cat-fairyTale" onclick="startQuiz('fairyTale')">
             <div class="cat-icon">🧚‍♀️</div>
             <div class="cat-title">신비한 동화의 숲</div>
-            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">백설공주, 피노키오, 아기돼지 삼형제 등 재미있는 이야기 세계</div>
+            <div style="font-size: 1.05rem; color: var(--text); opacity:0.8;">백설공주, 피노키오, 아기돼지 삼형제 등 재미있는 이야기 세계</div>
         </div>
         
         <div class="cat-card" id="cat-greatPeople" onclick="startQuiz('greatPeople')">
             <div class="cat-icon">👑</div>
             <div class="cat-title">위대한 위인의 전당</div>
-            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">세종대왕, 이순신, 에디슨 등 역사 속 위인들의 발자취</div>
+            <div style="font-size: 1.05rem; color: var(--text); opacity:0.8;">세종대왕, 이순신, 에디슨 등 역사 속 위인들의 발자취</div>
             <div class="lock-overlay" id="lock-greatPeople"></div>
         </div>
         
         <div class="cat-card" id="cat-classics" onclick="startQuiz('classics')">
             <div class="cat-icon">🏰</div>
             <div class="cat-title">놀라운 고전명작의 성</div>
-            <div style="font-size: 0.9rem; color: var(--text); opacity:0.8;">변신, 위대한 개츠비, 레미제라블 등 세계의 명작들</div>
+            <div style="font-size: 1.05rem; color: var(--text); opacity:0.8;">변신, 위대한 개츠비, 레미제라블 등 세계의 명작들</div>
             <div class="lock-overlay" id="lock-classics"></div>
         </div>
 
@@ -242,30 +343,30 @@
 
     <div id="page-quiz" class="page">
         <div class="scenario-box">
-            <div id="scenario-image" class="scenario-img">🖼️</div>
-            <div id="scenario-title" style="font-weight:800; color:var(--accent); font-size: 1.4rem; margin-bottom:5px;"></div>
-            <p id="scenario-desc" style="font-size:0.95rem; color:var(--text); opacity:0.9; line-height:1.6;"></p>
+            <div id="scenario-image" class="scenario-img floating-icon">🖼️</div>
+            <div id="scenario-title" style="color:var(--accent); font-size: 2rem; margin-bottom:10px; -webkit-text-stroke: 1px var(--text); text-shadow: 3px 3px 0px var(--box-shadow);"></div>
+            <p id="scenario-desc" style="font-size:1.15rem; color:var(--text); opacity:0.9; line-height:1.6;"></p>
         </div>
 
         <div id="step1" class="step-container step-active">
-            <div class="example-tag">💡 예시: "주인공은 누구인가요?", "지금 날씨는 어떤가요?"</div>
-            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🔎 1단계: 사실 질문 (무엇, 누구, 어디)</div>
+            <div class="example-tag">💡 힌트: "주인공은 누구인가요?", "지금 날씨는 어떤가요?"</div>
+            <div style="font-size: 1.3rem; color: var(--primary); margin-bottom:5px;">🔎 1단계: 사실 질문 (무엇, 누구, 어디)</div>
             <textarea id="q1" placeholder="눈에 보이는 정보를 찾아 질문을 만들어보세요."></textarea>
             <div id="res1" class="result-box"></div>
             <button id="btn1" class="btn-main" onclick="checkStep(1)">연금술사님께 물어보기</button>
         </div>
 
         <div id="step2" class="step-container">
-            <div class="example-tag">💡 예시: "왜 사과가 아래로 떨어질까요?", "왜 토끼를 속였을까요?"</div>
-            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">🤔 2단계: 궁금 질문 (왜, 이유, 원인)</div>
+            <div class="example-tag">💡 힌트: "왜 사과가 아래로 떨어질까요?", "왜 토끼를 속였을까요?"</div>
+            <div style="font-size: 1.3rem; color: var(--primary); margin-bottom:5px;">🤔 2단계: 궁금 질문 (왜, 이유, 원인)</div>
             <textarea id="q2" placeholder="사건의 숨겨진 이유나 속마음을 질문해보세요."></textarea>
             <div id="res2" class="result-box"></div>
             <button id="btn2" class="btn-main" onclick="checkStep(2)">연금술사님께 물어보기</button>
         </div>
 
         <div id="step3" class="step-container">
-            <div class="example-tag">💡 예시: "만약 중력이 사라진다면?", "만약 토끼가 따라가지 않았다면?"</div>
-            <div style="font-weight:bold; font-size: 1.1rem; color: var(--primary);">💡 3단계: 새롬 질문 (만약 ~라면)</div>
+            <div class="example-tag">💡 힌트: "만약 중력이 사라진다면?", "만약 토끼가 따라가지 않았다면?"</div>
+            <div style="font-size: 1.3rem; color: var(--primary); margin-bottom:5px;">💡 3단계: 새롬 질문 (만약 ~라면)</div>
             <textarea id="q3" placeholder="나만의 상상을 더해 새로운 질문을 해보세요."></textarea>
             <div id="res3" class="result-box"></div>
             <button id="btn3" class="btn-main" onclick="checkStep(3)">최종 보물 완성하기</button>
@@ -276,8 +377,8 @@
     </div>
 
     <div id="page-shop" class="page">
-        <h2 style="color: var(--accent); text-align: center;">🛒 연금술 상점</h2>
-        <p style="text-align:center; color:var(--text); opacity:0.8; margin-bottom: 20px;">별을 모아 스킨과 특수효과를 구매해보세요!</p>
+        <h2 style="color: var(--accent); text-align: center; -webkit-text-stroke: 1.5px var(--text); text-shadow: 4px 4px 0px var(--box-shadow); font-size: 2.4rem; letter-spacing: 1px;">🛒 연금술 상점</h2>
+        <p style="text-align:center; color:var(--text); font-size:1.1rem; opacity:0.8; margin-bottom: 25px;">별을 모아 스킨과 특수효과를 사보자!</p>
         
         <div id="shop-items-container"></div>
         
@@ -285,7 +386,7 @@
     </div>
 
     <div id="page-history" class="page">
-        <h2 style="color: var(--primary);">📂 나의 보물 기록장</h2>
+        <h2 style="color: var(--primary); text-align: center; -webkit-text-stroke: 1.5px var(--text); text-shadow: 4px 4px 0px var(--box-shadow); font-size: 2.2rem; letter-spacing: 1px;">📂 나의 보물 기록장</h2>
         <div id="history-list"></div>
         <button class="btn-nav" onclick="showPage('page-home')">홈으로 돌아가기</button>
     </div>
@@ -293,8 +394,7 @@
 
 <script>
     // 🚨 스토어 출시 전에 반드시 여기에 발급받은 API 키를 넣어주세요!
-    // const apiKey = "여기에_형님_키_넣어주세요"; 
-    const apiKey = "AIzaSyD7XeUgHEDsjKslh3yXeRJozEW4pcYiS0k"; 
+    const apiKey = ""; 
 
     const scenariosData = {
         fairyTale: [
@@ -335,7 +435,6 @@
         ]
     };
 
-    // 🌟 방대한 상점 아이템
     const shopItems = [
         { id: 'effect_red', type: 'effect', name: '🔴 붉은 열정의 폭죽', desc: '질문 성공 시 붉은색 폭죽이 터집니다.', price: 15 },
         { id: 'effect_green', type: 'effect', name: '💚 초록 생명의 폭죽', desc: '질문 성공 시 상쾌한 초록빛 폭죽이 터집니다.', price: 15 },
@@ -345,15 +444,14 @@
         { id: 'effect_quake', type: 'premium_effect', name: '⚡ 대지의 진동 스크롤', desc: '[프리미엄] 스마트폰 화면이 요동치며 황금빛 오라가 뿜어져 나옵니다!', price: 40 },
         { id: 'effect_fireworks', type: 'premium_effect', name: '🎆 대마법사의 연회', desc: '[프리미엄] 화면 3곳에서 연속으로 거대한 불꽃놀이가 터집니다!', price: 50 },
         
-        { id: 'skin_dark', type: 'skin', name: '🔮 흑마법사 스킨', desc: '앱 전체가 멋진 보랏빛 다크 모드로 변신합니다.', price: 40 },
-        { id: 'skin_fairy', type: 'skin', name: '🧚‍♀️ 숲속의 요정 스킨', desc: '앱 전체가 싱그러운 숲속 테마로 변신합니다.', price: 40 },
-        { id: 'skin_royal', type: 'skin', name: '👑 황실 대마법사 스킨', desc: '앱 전체가 고급스러운 황금빛 테마로 변신합니다.', price: 80 }
+        { id: 'skin_dark', type: 'skin', name: '🔮 흑마법사 스킨', desc: '스멀스멀 움직이는 어둠의 입자와 보랏빛 후광이 추가됩니다.', price: 40 },
+        { id: 'skin_fairy', type: 'skin', name: '🧚‍♀️ 숲속의 요정 스킨', desc: '둥둥 떠다니는 초록빛 숲의 정령 애니메이션이 추가됩니다.', price: 40 },
+        { id: 'skin_royal', type: 'skin', name: '👑 황실 대마법사 스킨', desc: '눈부시게 일렁이는 황금빛 물결 애니메이션이 추가됩니다.', price: 80 }
     ];
     
     let currentCategory = '';
     let currentSessionStars = 0;
     
-    // 데이터 로드
     let totalStars = parseInt(localStorage.getItem('alchemist_total_stars') || '0');
     let inventory = JSON.parse(localStorage.getItem('alchemist_inventory') || '[]');
     let equippedEffect = localStorage.getItem('alchemist_equipped_effect') || '';
@@ -362,10 +460,10 @@
     
     let previewingSkinId = null;
 
-    applyTheme(equippedSkin);
+    // 앱 시작 시 저장된 테마 불러오기 (이펙트 없이 조용히 로드)
+    applyTheme(equippedSkin, false);
     updateTopBar();
 
-    // 🏆 10단계 칭호 결정 함수
     function getTitle(stars) {
         if(stars >= 90) return "👑 전설의 대연금술사";
         if(stars >= 80) return "✨ 빛나는 마스터";
@@ -384,33 +482,67 @@
         document.getElementById('user-title-display').innerText = getTitle(totalStars);
     }
 
-    // 💡 API 상태등 변경 함수
     function setApiStatus(state) {
         const dot = document.getElementById('api-status-dot');
-        dot.className = 'status-dot'; // 클래스 초기화
-        if (state === 'green') {
-            dot.classList.add('status-green');
-            dot.title = "연결 양호";
-        } else if (state === 'yellow') {
-            dot.classList.add('status-yellow');
-            dot.title = "정제 중...";
-        } else if (state === 'red') {
-            dot.classList.add('status-red');
-            dot.title = "연결 끊김 / 과부하";
-        }
+        dot.className = 'status-dot'; 
+        if (state === 'green') { dot.classList.add('status-green'); dot.title = "연결 양호"; } 
+        else if (state === 'yellow') { dot.classList.add('status-yellow'); dot.title = "정제 중..."; } 
+        else if (state === 'red') { dot.classList.add('status-red'); dot.title = "연결 끊김 / 과부하"; }
     }
 
-    // 🎨 스킨(테마) 적용
-    function applyTheme(skinId) {
+    // 🎨 스킨(테마) 적용 및 ✨화려한 장착 이펙트
+    function applyTheme(skinId, animate = false) {
         const root = document.documentElement;
+        
+        // CSS 클래스를 body에 부여하여 움직이는 배경 발동!
+        document.body.className = (skinId === 'default' ? '' : skinId);
+
         if (skinId === 'skin_dark') {
-            root.style.setProperty('--primary', '#9f7aea'); root.style.setProperty('--bg', '#1a202c'); root.style.setProperty('--white', '#2d3748'); root.style.setProperty('--accent', '#ed64a6'); root.style.setProperty('--soft', '#4a5568'); root.style.setProperty('--text', '#f7fafc'); root.style.setProperty('--box-border', '#4a5568'); root.style.setProperty('--card-bg', 'rgba(45,55,72,0.9)');
+            root.style.setProperty('--primary', '#9B59B6'); root.style.setProperty('--primary-shadow', '#8E44AD');
+            root.style.setProperty('--bg', '#2C3E50'); root.style.setProperty('--white', '#34495E'); 
+            root.style.setProperty('--accent', '#F1C40F'); root.style.setProperty('--accent-shadow', '#F39C12'); 
+            root.style.setProperty('--text', '#ECF0F1'); root.style.setProperty('--box-border', '#1A252F'); 
+            root.style.setProperty('--box-shadow', '#1A252F'); root.style.setProperty('--card-bg', '#34495E');
+            root.style.setProperty('--soft', '#2C3E50');
         } else if (skinId === 'skin_fairy') {
-            root.style.setProperty('--primary', '#38a169'); root.style.setProperty('--bg', '#f0fff4'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#d69e2e'); root.style.setProperty('--soft', '#c6f6d5'); root.style.setProperty('--text', '#22543d'); root.style.setProperty('--box-border', '#9ae6b4'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+            root.style.setProperty('--primary', '#10AC84'); root.style.setProperty('--primary-shadow', '#01A3A4');
+            root.style.setProperty('--bg', '#E3FDFD'); root.style.setProperty('--white', '#FFFFFF'); 
+            root.style.setProperty('--accent', '#FF9F43'); root.style.setProperty('--accent-shadow', '#EE5253'); 
+            root.style.setProperty('--text', '#222F3E'); root.style.setProperty('--box-border', '#1DD1A1'); 
+            root.style.setProperty('--box-shadow', '#01A3A4'); root.style.setProperty('--card-bg', '#FFFFFF');
+            root.style.setProperty('--soft', '#CBF2ED');
         } else if (skinId === 'skin_royal') {
-            root.style.setProperty('--primary', '#b7791f'); root.style.setProperty('--bg', '#fffff0'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#e53e3e'); root.style.setProperty('--soft', '#fefcbf'); root.style.setProperty('--text', '#744210'); root.style.setProperty('--box-border', '#f6e05e'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+            root.style.setProperty('--primary', '#EE5253'); root.style.setProperty('--primary-shadow', '#C81B1B');
+            root.style.setProperty('--bg', '#FFF2E6'); root.style.setProperty('--white', '#FFFFFF'); 
+            root.style.setProperty('--accent', '#FECA57'); root.style.setProperty('--accent-shadow', '#FF9F43'); 
+            root.style.setProperty('--text', '#572C15'); root.style.setProperty('--box-border', '#FDCB6E'); 
+            root.style.setProperty('--box-shadow', '#E58E26'); root.style.setProperty('--card-bg', '#FFFFFF');
+            root.style.setProperty('--soft', '#FFEAA7');
         } else {
-            root.style.setProperty('--primary', '#2b6cb0'); root.style.setProperty('--bg', '#f7fafc'); root.style.setProperty('--white', '#ffffff'); root.style.setProperty('--accent', '#ed8936'); root.style.setProperty('--soft', '#ebf8ff'); root.style.setProperty('--text', '#2d3748'); root.style.setProperty('--box-border', '#edf2f7'); root.style.setProperty('--card-bg', 'rgba(255,255,255,0.9)');
+            root.style.setProperty('--primary', '#FF6B81'); root.style.setProperty('--primary-shadow', '#E84159');
+            root.style.setProperty('--bg', '#FFF4F4'); root.style.setProperty('--white', '#FFFFFF'); 
+            root.style.setProperty('--accent', '#48DBFB'); root.style.setProperty('--accent-shadow', '#0ABDE3'); 
+            root.style.setProperty('--text', '#2D3436'); root.style.setProperty('--box-border', '#FFEAA7'); 
+            root.style.setProperty('--box-shadow', '#FDCB6E'); root.style.setProperty('--card-bg', '#FFFFFF');
+            root.style.setProperty('--soft', '#FFF9E6');
+        }
+
+        // 🎉 스킨 구경/장착 시 터지는 거대한 마법 파티클 효과!
+        if (animate) {
+            let colors = [];
+            if (skinId === 'skin_dark') colors = ['#9B59B6', '#8E44AD', '#34495E'];
+            else if (skinId === 'skin_fairy') colors = ['#1DD1A1', '#10AC84', '#E3FDFD'];
+            else if (skinId === 'skin_royal') colors = ['#FECA57', '#FDCB6E', '#FFFFFF'];
+            else colors = ['#FF6B81', '#48DBFB', '#FECA57']; // 기본 스킨 색
+
+            confetti({
+                particleCount: 150,
+                spread: 120,
+                origin: { y: 0.2 }, // 화면 위에서 아래로 터지도록
+                colors: colors,
+                zIndex: 9999,
+                disableForReducedMotion: true
+            });
         }
     }
 
@@ -439,7 +571,7 @@
         if (isUnlocked) {
             lockGreat.style.display = 'none'; lockClassics.style.display = 'none'; cardGreat.classList.remove('locked'); cardClassics.classList.remove('locked');
         } else {
-            const lockMsg = `🔒 봉인됨<br><span style="font-size:0.9rem; font-weight:normal; margin-top:5px;">(동화의 숲: ${fairyTaleStars}/30별 필요)</span>`;
+            const lockMsg = `🔒 굳게 닫힘!<br><span style="font-size:1.1rem; font-weight:700; margin-top:5px; color:var(--text);">(동화의 숲: ${fairyTaleStars}/30별 필요)</span>`;
             lockGreat.innerHTML = lockMsg; lockClassics.innerHTML = lockMsg; lockGreat.style.display = 'flex'; lockClassics.style.display = 'flex'; cardGreat.classList.add('locked'); cardClassics.classList.add('locked');
         }
         showPage('page-category');
@@ -462,7 +594,7 @@
 
         if (!s) {
             const availableScenarios = scenariosData[category].filter(scen => !clearedTitles.includes(scen.title));
-            if (availableScenarios.length === 0) return alert("🎉 대단해요! 이 세계의 모든 에피소드를 완벽하게 마스터했습니다!");
+            if (availableScenarios.length === 0) return alert("🎉 와아! 이 세계의 모든 에피소드를 완벽하게 마스터했어요!");
             const curIdx = Math.floor(Math.random() * availableScenarios.length);
             s = availableScenarios[curIdx];
             qState = { title: s.title, step: 1, stars: 0, answers: ['', '', ''] };
@@ -496,33 +628,32 @@
             document.getElementById('btn-save').style.display = 'none';
         }
         
-        setApiStatus('green'); // 페이지 진입 시 초록불
+        setApiStatus('green'); 
         showPage('page-quiz');
     }
 
-    // 🎇 마법 효과 종합 세트 함수
     function shootSpecificEffect(effectId) {
         if (!effectId) return;
 
         if (effectId === 'effect_red') {
-            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#ff0000', '#bb0000', '#ff8888'] });
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#FF6B81', '#E84159', '#ff8888'] });
         } else if (effectId === 'effect_green') {
-            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#00ff00', '#00bb00', '#88ff88'] });
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors: ['#1DD1A1', '#10AC84', '#88ff88'] });
         } else if (effectId === 'effect_tricolor') {
-            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'] });
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 }, colors: ['#FF6B81', '#1DD1A1', '#48DBFB', '#FECA57'] });
         } else if (effectId === 'effect_potion') {
-            confetti({ particleCount: 150, spread: 120, startVelocity: 45, origin: { y: 0.5 }, colors: ['#9b59b6', '#8e44ad', '#2ecc71', '#ff00ff'] });
+            confetti({ particleCount: 150, spread: 120, startVelocity: 45, origin: { y: 0.5 }, colors: ['#9b59b6', '#8e44ad', '#1DD1A1', '#FF9F43'] });
         } else if (effectId === 'effect_meteor') {
-            confetti({ particleCount: 200, spread: 160, startVelocity: 30, origin: { y: 0.1 }, colors: ['#FFD700', '#FDB813', '#FF8C00'] });
+            confetti({ particleCount: 200, spread: 160, startVelocity: 30, origin: { y: 0.1 }, colors: ['#FECA57', '#FDCB6E', '#FF9F43'] });
         } else if (effectId === 'effect_quake') {
             const app = document.getElementById('main-app');
             app.classList.add('quake-active');
             setTimeout(() => app.classList.remove('quake-active'), 800);
-            confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 }, colors: ['#FFD700', '#FFFFFF'] });
+            confetti({ particleCount: 80, spread: 100, origin: { y: 0.5 }, colors: ['#FECA57', '#FFFFFF'] });
         } else if (effectId === 'effect_fireworks') {
-            confetti({ particleCount: 80, spread: 60, origin: { x: 0.2, y: 0.5 }, colors: ['#ff0000', '#ff8888'] });
-            setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { x: 0.8, y: 0.5 }, colors: ['#0000ff', '#8888ff'] }), 300);
-            setTimeout(() => confetti({ particleCount: 150, spread: 120, origin: { x: 0.5, y: 0.3 }, colors: ['#ffff00', '#00ff00', '#ff00ff'] }), 700);
+            confetti({ particleCount: 80, spread: 60, origin: { x: 0.2, y: 0.5 }, colors: ['#FF6B81', '#E84159'] });
+            setTimeout(() => confetti({ particleCount: 80, spread: 60, origin: { x: 0.8, y: 0.5 }, colors: ['#48DBFB', '#0ABDE3'] }), 300);
+            setTimeout(() => confetti({ particleCount: 150, spread: 120, origin: { x: 0.5, y: 0.3 }, colors: ['#FECA57', '#1DD1A1', '#FF9F43'] }), 700);
         }
     }
 
@@ -536,11 +667,10 @@
         btn.disabled = true; btn.innerText = "🧙‍♂️ 지식을 정제하고 있어요...";
         res.style.display = "block"; res.className = "result-box"; res.innerText = "연금술사님이 질문의 가치를 확인하고 있어요...";
 
-        // 🟡 질문 시작! (상태등 노란색 깜빡임)
         setApiStatus('yellow');
 
-        // 🌟 다시 안전하고 빠른 2.0 플래시 엔진으로 완벽 롤백! 🌟
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // 🌟 가장 무조건 돌아가는 불멸의 엔진 1.5-flash
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         const currentTitle = document.getElementById('scenario-title').innerText;
         const s = scenariosData[currentCategory].find(x => x.title === currentTitle);
 
@@ -564,14 +694,25 @@
                 })
             });
             
+            if (!response.ok) {
+                let errorReason = "알 수 없는 통신 오류";
+                try {
+                    const errData = await response.json();
+                    errorReason = errData.error.message;
+                } catch(e) { errorReason = "서버가 응답하지 않습니다 (상태코드: " + response.status + ")"; }
+                throw new Error(errorReason);
+            }
+
             const data = await response.json();
-            const result = JSON.parse(data.candidates[0].content.parts[0].text);
             
-            // 🟢 통신 성공! (상태등 다시 초록불)
+            let rawText = data.candidates[0].content.parts[0].text;
+            rawText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const result = JSON.parse(rawText);
+            
             setApiStatus('green');
 
             if (result.isPass) {
-                shootSpecificEffect(equippedEffect); // 장착한 마법 효과 발사!
+                shootSpecificEffect(equippedEffect); 
                 
                 currentSessionStars++; totalStars++;
                 localStorage.setItem('alchemist_total_stars', totalStars); updateTopBar(); 
@@ -600,9 +741,11 @@
                 btn.disabled = false; btn.innerText = "다시 질문하기";
             }
         } catch (e) {
-            // 🔴 통신 실패/에러! (상태등 빨간불 켜짐)
             setApiStatus('red');
-            res.className = "result-box fail"; res.innerHTML = "🧙‍♂️ <b>앗! 연금술 도구가 과부하되었어요!</b><br>잠시만 기다렸다가 다시 '물어보기'를 눌러주세요.";
+            res.className = "result-box fail"; 
+            res.innerHTML = `🧙‍♂️ <b>앗! 마법 회로에 문제가 생겼어요!</b><br>
+                            <div class="error-msg">❌ 구글 서버 메시지:<br>${e.message}</div>
+                            <br>형님! 위 빨간 박스 안의 영어를 저한테 알려주시면 바로 해결해 드리겠습니다!`;
             btn.disabled = false; btn.innerText = "다시 물어보기";
         }
     }
@@ -633,32 +776,34 @@
         const list = document.getElementById('history-list');
         const history = JSON.parse(localStorage.getItem('alchemist_history_v2') || '[]');
         list.innerHTML = history.length ? history.reverse().map(h => `
-            <div style="background:var(--white); border-radius:18px; padding:20px; margin-bottom:15px; border:1px solid var(--box-border);">
+            <div style="background:var(--card-bg); border-radius:24px; padding:25px; margin-bottom:20px; border:4px solid var(--box-border); box-shadow:0 6px 0 var(--box-shadow);">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                    <strong style="color:var(--primary); font-size:1.1rem;">[${h.title}]</strong>
-                    <span style="color:var(--accent); font-weight:800;">
+                    <strong style="color:var(--primary); font-size:1.3rem; font-weight:900;">[${h.title}]</strong>
+                    <span style="color:var(--accent); font-weight:900; font-size:1.2rem; text-shadow:1px 1px 0 rgba(0,0,0,0.1);">
                         ${Array(h.stars).fill('⭐').join('')}${Array(3 - h.stars).fill('☆').join('')}
                     </span>
                 </div>
-                <small style="color:var(--text); opacity:0.6; display:block; margin-bottom:10px;">📅 ${h.date}</small>
-                <div style="font-size:0.9rem; color:var(--text); background:var(--bg); padding:10px; border-radius:10px;">
-                    <p style="margin:4px 0;">🔍 <b>사실:</b> ${h.q1}</p>
-                    <p style="margin:4px 0;">🤔 <b>궁금:</b> ${h.q2}</p>
-                    <p style="margin:4px 0;">💡 <b>새롬:</b> ${h.q3}</p>
+                <small style="color:var(--text); opacity:0.6; display:block; margin-bottom:15px; font-size:1rem;">📅 ${h.date}</small>
+                <div style="font-size:1.1rem; color:var(--text); background:var(--bg); padding:15px; border-radius:16px; line-height:1.5;">
+                    <p style="margin:4px 0;">🔍 <b style="color:var(--primary);">사실:</b> ${h.q1}</p>
+                    <p style="margin:4px 0;">🤔 <b style="color:var(--accent);">궁금:</b> ${h.q2}</p>
+                    <p style="margin:4px 0;">💡 <b style="color:#10AC84;">새롬:</b> ${h.q3}</p>
                 </div>
-            </div>`).join('') : '<p style="text-align:center; padding:50px; color:var(--text); opacity:0.6;">아직 저장된 보물이 없어요.</p>';
+            </div>`).join('') : '<p style="text-align:center; padding:50px; color:var(--text); font-size:1.1rem; opacity:0.6;">아직 저장된 보물이 없어요.</p>';
     }
 
-    function previewSkin(id) { previewingSkinId = id; applyTheme(id); renderShop(); }
-    function endPreview() { previewingSkinId = null; applyTheme(equippedSkin); renderShop(); }
+    // 💡 구경 버튼을 눌렀을 때 'true'를 던져서 팡파르 발사!
+    function previewSkin(id) { previewingSkinId = id; applyTheme(id, true); renderShop(); }
+    
+    // 구경 끄기
+    function endPreview() { previewingSkinId = null; applyTheme(equippedSkin, true); renderShop(); }
 
-    // 🎨 상점 렌더링 (모든 아이템 미리보기 지원!)
     function renderShop() {
         const container = document.getElementById('shop-items-container');
         container.innerHTML = ``;
 
         if(equippedSkin !== 'default' && previewingSkinId === null) {
-            container.innerHTML += `<div style="text-align:right; margin-bottom:15px;"><button onclick="equipSkin('default')" style="width:auto; padding:8px 15px; font-size:0.8rem; background:var(--box-border); color:var(--text);">스킨 원래대로 🔄</button></div>`;
+            container.innerHTML += `<div style="text-align:right; margin-bottom:15px;"><button onclick="equipSkin('default')" style="width:auto; padding:10px 18px; font-size:1rem; font-weight:800; background:var(--card-bg); color:var(--text); border:3px solid var(--box-border); box-shadow:0 4px 0 var(--box-shadow); border-radius:999px;">스킨 원래대로 🔄</button></div>`;
         }
 
         container.innerHTML += shopItems.map(item => {
@@ -675,14 +820,14 @@
                 if (item.type === 'skin') {
                     if (previewingSkinId === item.id) {
                         btnHtml = `
-                            <div style="display:flex; gap:6px; width:100%;">
+                            <div style="display:flex; gap:10px; width:100%;">
                                 <button class="shop-btn btn-preview-active" onclick="endPreview()">👀 종료</button>
                                 <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
                             </div>
                         `;
                     } else {
                         btnHtml = `
-                            <div style="display:flex; gap:6px; width:100%;">
+                            <div style="display:flex; gap:10px; width:100%;">
                                 <button class="shop-btn btn-preview" onclick="previewSkin('${item.id}')">👀 구경</button>
                                 <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
                             </div>
@@ -690,8 +835,8 @@
                     }
                 } else {
                     btnHtml = `
-                        <div style="display:flex; gap:6px; width:100%;">
-                            <button class="shop-btn btn-preview" onclick="shootSpecificEffect('${item.id}')">✨ 미리보기</button>
+                        <div style="display:flex; gap:10px; width:100%;">
+                            <button class="shop-btn btn-preview" onclick="shootSpecificEffect('${item.id}')">✨ 맛보기</button>
                             <button class="shop-btn btn-buy" onclick="buyItem('${item.id}', ${item.price}, '${item.type}')">⭐ ${item.price}</button>
                         </div>
                     `;
@@ -710,7 +855,7 @@
                         <div class="shop-item-title">${item.name}</div>
                         <div class="shop-item-desc">${item.desc}</div>
                     </div>
-                    <div style="display:flex; align-items:center; width:100%; margin-top:10px;">
+                    <div style="display:flex; align-items:center; width:100%; margin-top:15px;">
                         ${btnHtml}
                     </div>
                 </div>
@@ -733,7 +878,9 @@
     }
 
     function equipEffect(id) { equippedEffect = id; localStorage.setItem('alchemist_equipped_effect', equippedEffect); renderShop(); }
-    function equipSkin(id) { equippedSkin = id; localStorage.setItem('alchemist_equipped_skin', equippedSkin); applyTheme(id); renderShop(); }
+    
+    // 💡 장착할 때도 true를 던져서 팡파르 발사!
+    function equipSkin(id) { equippedSkin = id; localStorage.setItem('alchemist_equipped_skin', equippedSkin); applyTheme(id, true); renderShop(); }
 </script>
 </body>
 </html>
