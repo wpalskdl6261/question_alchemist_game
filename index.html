@@ -50,6 +50,21 @@
         }
         .quake-active { animation: quakeAnim 0.8s ease-in-out; }
 
+        /* 🟢🟡🔴 API 상태 구슬 CSS */
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            transition: all 0.3s ease; display: inline-block;
+        }
+        .status-green { background-color: #48bb78; box-shadow: 0 0 8px rgba(72, 187, 120, 0.6); }
+        .status-yellow { background-color: #ecc94b; box-shadow: 0 0 8px rgba(236, 201, 75, 0.8); animation: pulseYellow 1s infinite; }
+        .status-red { background-color: #e53e3e; box-shadow: 0 0 8px rgba(229, 62, 62, 0.8); }
+        
+        @keyframes pulseYellow {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         textarea, input { user-select: text; -webkit-user-select: text; color: #2d3748; }
 
         .top-status-bar {
@@ -159,7 +174,10 @@
 <body>
 <div id="main-app" class="app-container">
     <div class="top-status-bar">
-        <div id="user-title-display">🌱 견습 연금술사</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div id="api-status-dot" class="status-dot status-green" title="연결 양호"></div>
+            <div id="user-title-display">🌱 견습 연금술사</div>
+        </div>
         <div class="star-count-display">
             <span id="total-stars-display">0</span>
             <span>⭐</span>
@@ -175,7 +193,7 @@
             <button class="btn-sub" onclick="showPage('page-history'); loadHistory();">📂 나의 보물 기록장</button>
             <button class="btn-shop" onclick="showPage('page-shop'); renderShop();">🛒 마법 연금술 상점</button>
         </div>
-        <div class="footer-logo">QA App v5.1 (Gemini 2.0 Flash / Magic Edition)</div>
+        <div class="footer-logo">QA App v5.2 (Gemini 2.0 Flash / Live Status)</div>
     </div>
 
     <div id="page-intro" class="page">
@@ -275,6 +293,7 @@
 
 <script>
     // 🚨 스토어 출시 전에 반드시 여기에 발급받은 API 키를 넣어주세요!
+    // const apiKey = "여기에_형님_키_넣어주세요"; 
     const apiKey = "AIzaSyD7XeUgHEDsjKslh3yXeRJozEW4pcYiS0k"; 
 
     const scenariosData = {
@@ -316,7 +335,7 @@
         ]
     };
 
-    // 🌟 방대한 상점 아이템 (프리미엄 특수효과 대거 입고!)
+    // 🌟 방대한 상점 아이템
     const shopItems = [
         { id: 'effect_red', type: 'effect', name: '🔴 붉은 열정의 폭죽', desc: '질문 성공 시 붉은색 폭죽이 터집니다.', price: 15 },
         { id: 'effect_green', type: 'effect', name: '💚 초록 생명의 폭죽', desc: '질문 성공 시 상쾌한 초록빛 폭죽이 터집니다.', price: 15 },
@@ -363,6 +382,22 @@
     function updateTopBar() {
         document.getElementById('total-stars-display').innerText = totalStars;
         document.getElementById('user-title-display').innerText = getTitle(totalStars);
+    }
+
+    // 💡 API 상태등 변경 함수
+    function setApiStatus(state) {
+        const dot = document.getElementById('api-status-dot');
+        dot.className = 'status-dot'; // 클래스 초기화
+        if (state === 'green') {
+            dot.classList.add('status-green');
+            dot.title = "연결 양호";
+        } else if (state === 'yellow') {
+            dot.classList.add('status-yellow');
+            dot.title = "정제 중...";
+        } else if (state === 'red') {
+            dot.classList.add('status-red');
+            dot.title = "연결 끊김 / 과부하";
+        }
     }
 
     // 🎨 스킨(테마) 적용
@@ -460,6 +495,8 @@
         } else {
             document.getElementById('btn-save').style.display = 'none';
         }
+        
+        setApiStatus('green'); // 페이지 진입 시 초록불
         showPage('page-quiz');
     }
 
@@ -499,6 +536,9 @@
         btn.disabled = true; btn.innerText = "🧙‍♂️ 지식을 정제하고 있어요...";
         res.style.display = "block"; res.className = "result-box"; res.innerText = "연금술사님이 질문의 가치를 확인하고 있어요...";
 
+        // 🟡 질문 시작! (상태등 노란색 깜빡임)
+        setApiStatus('yellow');
+
         // 🌟 다시 안전하고 빠른 2.0 플래시 엔진으로 완벽 롤백! 🌟
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
         const currentTitle = document.getElementById('scenario-title').innerText;
@@ -527,6 +567,9 @@
             const data = await response.json();
             const result = JSON.parse(data.candidates[0].content.parts[0].text);
             
+            // 🟢 통신 성공! (상태등 다시 초록불)
+            setApiStatus('green');
+
             if (result.isPass) {
                 shootSpecificEffect(equippedEffect); // 장착한 마법 효과 발사!
                 
@@ -557,6 +600,8 @@
                 btn.disabled = false; btn.innerText = "다시 질문하기";
             }
         } catch (e) {
+            // 🔴 통신 실패/에러! (상태등 빨간불 켜짐)
+            setApiStatus('red');
             res.className = "result-box fail"; res.innerHTML = "🧙‍♂️ <b>앗! 연금술 도구가 과부하되었어요!</b><br>잠시만 기다렸다가 다시 '물어보기'를 눌러주세요.";
             btn.disabled = false; btn.innerText = "다시 물어보기";
         }
